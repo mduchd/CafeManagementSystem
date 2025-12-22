@@ -168,8 +168,8 @@ Trưởng nhóm review trước khi merge
 
 | Họ tên | Vai trò |
 |------|--------|
-| Nguyễn Minh Đức | Team Leader |
-| Nguyễn Thúy Hiền | Developer |
-| Lê Tiến Quân | Developer |
-| Lê Thị Dịu | Developer |
-| Vũ Ngọc Sơn | Developer |
+| Nguyễn Minh Đức | Quản lý bán hàng + đăng nhập, đăng xuất |
+| Nguyễn Thúy Hiền | Quản lý sản phẩm |
+| Lê Tiến Quân | Báo cáo và thống kê |
+| Lê Thị Dịu | Quản lý bàn |
+| Vũ Ngọc Sơn | Quản lý nhân sự + Quản lý kho |
