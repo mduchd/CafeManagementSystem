@@ -4,6 +4,8 @@
  */
 package com.cafe.view.main;
 
+import com.cafe.view.sales.SalesPanel;
+import javax.swing.*;
 /**
  *
  * @author Owner
@@ -16,7 +18,11 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame() {
-        initComponents();
+        super("CafeApp - Sales");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setContentPane(new SalesPanel());
+        setSize(1280, 720);
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -28,19 +34,73 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        pSidebar = new javax.swing.JPanel();
+        pLogo = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        pMenu = new javax.swing.JPanel();
+        btnSales = new javax.swing.JButton();
+        btnTables = new javax.swing.JButton();
+        btnProduct = new javax.swing.JButton();
+        btnWarehouse = new javax.swing.JButton();
+        btnStats = new javax.swing.JButton();
+        btnEmployee = new javax.swing.JButton();
+        pContent = new javax.swing.JPanel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Hệ thống quản lý Cafe");
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+        pSidebar.setBackground(new java.awt.Color(51, 0, 102));
+        pSidebar.setPreferredSize(new java.awt.Dimension(200, 0));
+        pSidebar.setLayout(new java.awt.BorderLayout());
+
+        jLabel1.setText("Java Coffee");
+
+        javax.swing.GroupLayout pLogoLayout = new javax.swing.GroupLayout(pLogo);
+        pLogo.setLayout(pLogoLayout);
+        pLogoLayout.setHorizontalGroup(
+            pLogoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pLogoLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addComponent(jLabel1)
+                .addContainerGap(77, Short.MAX_VALUE))
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+        pLogoLayout.setVerticalGroup(
+            pLogoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pLogoLayout.createSequentialGroup()
+                .addContainerGap(47, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addGap(37, 37, 37))
         );
+
+        pSidebar.add(pLogo, java.awt.BorderLayout.PAGE_START);
+
+        pMenu.setLayout(new javax.swing.BoxLayout(pMenu, javax.swing.BoxLayout.Y_AXIS));
+
+        btnSales.setText("Bán hàng");
+        pMenu.add(btnSales);
+
+        btnTables.setText("Bàn");
+        pMenu.add(btnTables);
+
+        btnProduct.setText("Menu");
+        pMenu.add(btnProduct);
+
+        btnWarehouse.setText("Kho");
+        pMenu.add(btnWarehouse);
+
+        btnStats.setText("Thống kê");
+        pMenu.add(btnStats);
+
+        btnEmployee.setText("Nhân viên");
+        pMenu.add(btnEmployee);
+
+        pSidebar.add(pMenu, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(pSidebar, java.awt.BorderLayout.LINE_START);
+
+        pContent.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        pContent.setLayout(new java.awt.CardLayout());
+        getContentPane().add(pContent, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -71,5 +131,16 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnEmployee;
+    private javax.swing.JButton btnProduct;
+    private javax.swing.JButton btnSales;
+    private javax.swing.JButton btnStats;
+    private javax.swing.JButton btnTables;
+    private javax.swing.JButton btnWarehouse;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel pContent;
+    private javax.swing.JPanel pLogo;
+    private javax.swing.JPanel pMenu;
+    private javax.swing.JPanel pSidebar;
     // End of variables declaration//GEN-END:variables
 }

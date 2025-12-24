@@ -44,15 +44,15 @@ public class DatabaseConnection {
 
 
     public static void main(String[] args) {
-        System.out.println("Đang kiểm tra kết nối...");
+        System.out.println("Dang kiem tra ket noi...");
         Connection testConn = getConnection();
         
         if (testConn != null) {
-            System.out.println("KẾT NỐI THÀNH CÔNG!");
+            System.out.println("KET NOI THANH CONG!");
             System.out.println("Dự án của bạn đã sẵn sàng để truy vấn dữ liệu.");
             closeConnection(testConn);
         } else {
-            System.out.println("KẾT NỐI THẤT BẠI!");
+            System.out.println("KET NOI THAT BAI!");
             System.out.println("Hãy đảm bảo bạn đã:");
             System.out.println("1. Start MySQL trong XAMPP.");
             System.out.println("2. Tạo Database tên 'CafeDB'.");
