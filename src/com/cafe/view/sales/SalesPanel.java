@@ -22,6 +22,11 @@ public class SalesPanel extends javax.swing.JPanel {
     private final Map<Integer, Integer> tableStatus = new HashMap<>(); // 0 trống, 1 có khách
     private int selectedTableNo = 1;
     
+    public SalesPanel() {
+        initComponents();
+        initLogic();
+    }
+    
     private void initLogic() {
     // 1) Setup nút bàn (8 bàn theo UI bạn đang có)
     JButton[] tableBtns = { jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton7, jButton8 };
@@ -61,6 +66,196 @@ public class SalesPanel extends javax.swing.JPanel {
         new Object[][]{},
         new String[]{"Món", "SL", "Đơn giá", "Thành tiền"}
     ));
+    
+    // 5) Setup menu items grid
+    setupMenuItems();
+    
+    // 6) Setup discount field listener
+    txtDiscountPercent.addActionListener(e -> updateTotalAmount());
+    txtDiscountPercent.addFocusListener(new java.awt.event.FocusAdapter() {
+        public void focusLost(java.awt.event.FocusEvent evt) {
+            updateTotalAmount();
+        }
+    });
+    
+    // 7) Setup cancel button
+    btnCancel.addActionListener(e -> clearBill());
+}
+
+private void setupMenuItems() {
+    // Tạo panel chứa menu items với GridLayout
+    JPanel pMenuGrid = new JPanel();
+    pMenuGrid.setLayout(new GridLayout(0, 3, 12, 12)); // 3 cột, khoảng cách 12px
+    pMenuGrid.setBorder(new EmptyBorder(10, 10, 10, 10));
+    
+    // Danh sách menu items mẫu
+    String[][] menuItems = {
+        {"Cà phê đen", "15,000đ", "COFFEE"},
+        {"Cà phê sữa", "18,000đ", "COFFEE"},
+        {"Bạc xỉu", "20,000đ", "COFFEE"},
+        {"Cappuccino", "25,000đ", "COFFEE"},
+        {"Latte", "28,000đ", "COFFEE"},
+        {"Espresso", "22,000đ", "COFFEE"},
+        {"Trà đào", "25,000đ", "TEA"},
+        {"Trà chanh", "20,000đ", "TEA"},
+        {"Trà sữa", "22,000đ", "TEA"},
+        {"Trà xanh", "18,000đ", "TEA"},
+        {"Nước cam", "20,000đ", "JUICE"},
+        {"Nước ép dưa hấu", "18,000đ", "JUICE"},
+        {"Sinh tố bơ", "25,000đ", "JUICE"},
+        {"Nước chanh", "15,000đ", "JUICE"},
+        {"Bánh flan", "15,000đ", "CAKE"},
+        {"Bánh tiramisu", "30,000đ", "CAKE"},
+        {"Bánh cheesecake", "28,000đ", "CAKE"},
+        {"Bánh croissant", "20,000đ", "CAKE"}
+    };
+    
+    // Tạo button cho mỗi menu item
+    for (String[] item : menuItems) {
+        JButton btnItem = createMenuItemButton(item[0], item[1], item[2]);
+        pMenuGrid.add(btnItem);
+    }
+    
+    // Thêm panel vào scroll pane
+    jScrollPane1.setViewportView(pMenuGrid);
+}
+
+private JButton createMenuItemButton(String name, String price, String category) {
+    JButton btn = new JButton();
+    btn.setLayout(new BorderLayout(5, 5));
+    btn.setPreferredSize(new Dimension(120, 80));
+    btn.setFocusPainted(false);
+    
+    // Label tên món
+    JLabel lblName = new JLabel(name, SwingConstants.CENTER);
+    lblName.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    
+    // Label giá
+    JLabel lblPrice = new JLabel(price, SwingConstants.CENTER);
+    lblPrice.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+    lblPrice.setForeground(new Color(52, 152, 219));
+    
+    // Panel chứa text
+    JPanel textPanel = new JPanel(new GridLayout(2, 1));
+    textPanel.setOpaque(false);
+    textPanel.add(lblName);
+    textPanel.add(lblPrice);
+    
+    btn.add(textPanel, BorderLayout.CENTER);
+    
+    // Màu nền theo category
+    Color bgColor = switch (category) {
+        case "COFFEE" -> new Color(255, 255, 255);
+        case "TEA" -> new Color(255, 255, 255);
+        case "JUICE" -> new Color(255, 255, 255);
+        case "CAKE" -> new Color(255, 255, 255);
+        default -> new Color(255, 255, 255);
+    };
+    btn.setBackground(bgColor);
+    btn.setForeground(Color.WHITE);
+    
+    // Hover effect
+    btn.addMouseListener(new java.awt.event.MouseAdapter() {
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+            btn.setBackground(bgColor.brighter());
+        }
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+            btn.setBackground(bgColor);
+        }
+    });
+    
+    // Click handler - thêm món vào bill
+    btn.addActionListener(e -> addItemToBill(name, price));
+    
+    return btn;
+}
+
+private void addItemToBill(String itemName, String priceStr) {
+    // Parse giá (loại bỏ dấu phẩy và 'đ')
+    String priceNumeric = priceStr.replace(",", "").replace("đ", "").trim();
+    int price = Integer.parseInt(priceNumeric);
+    
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    
+    // Kiểm tra món đã có trong bill chưa
+    boolean found = false;
+    for (int i = 0; i < model.getRowCount(); i++) {
+        String existingItem = (String) model.getValueAt(i, 0);
+        if (existingItem.equals(itemName)) {
+            // Tăng số lượng
+            int currentQty = (Integer) model.getValueAt(i, 1);
+            int newQty = currentQty + 1;
+            int total = newQty * price;
+            
+            model.setValueAt(newQty, i, 1);
+            model.setValueAt(formatCurrency(total), i, 3);
+            found = true;
+            break;
+        }
+    }
+    
+    // Nếu chưa có, thêm dòng mới
+    if (!found) {
+        model.addRow(new Object[]{
+            itemName,
+            1,
+            formatCurrency(price),
+            formatCurrency(price)
+        });
+    }
+    
+    // Cập nhật tổng tiền
+    updateTotalAmount();
+}
+
+private void updateTotalAmount() {
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    int subtotal = 0;
+    
+    // Calculate subtotal
+    for (int i = 0; i < model.getRowCount(); i++) {
+        String amountStr = (String) model.getValueAt(i, 3);
+        String numericStr = amountStr.replace(",", "").replace("đ", "").trim();
+        subtotal += Integer.parseInt(numericStr);
+    }
+    
+    // Update subtotal label
+    lblSubtotalValue.setText(formatCurrency(subtotal));
+    
+    // Calculate discount
+    int discountPercent = 0;
+    try {
+        discountPercent = Integer.parseInt(txtDiscountPercent.getText().trim());
+        if (discountPercent < 0) discountPercent = 0;
+        if (discountPercent > 100) discountPercent = 100;
+    } catch (NumberFormatException e) {
+        discountPercent = 0;
+        txtDiscountPercent.setText("0");
+    }
+    
+    // Calculate total with discount
+    int discountAmount = (subtotal * discountPercent) / 100;
+    int total = subtotal - discountAmount;
+    
+    // Update total label
+    lblTotalValue.setText(formatCurrency(total));
+}
+
+private String formatCurrency(int amount) {
+    return String.format("%,dđ", amount);
+}
+
+private void clearBill() {
+    // Clear table
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0);
+    
+    // Reset discount
+    txtDiscountPercent.setText("0");
+    
+    // Reset summary values
+    lblSubtotalValue.setText("0đ");
+    lblTotalValue.setText("0đ");
 }
 
 private void selectTable(int tableNo) {
@@ -108,14 +303,15 @@ private void setTableColor(JButton btn, int status, boolean selected) {
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         pBillBottom = new javax.swing.JPanel();
-        pActionRow = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
-        jLabel4 = new javax.swing.JLabel();
-        jSpinner1 = new javax.swing.JSpinner();
-        jButton15 = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        pSummaryPanel = new javax.swing.JPanel();
+        lblSubtotalLabel = new javax.swing.JLabel();
+        lblSubtotalValue = new javax.swing.JLabel();
+        lblDiscountLabel = new javax.swing.JLabel();
+        txtDiscountPercent = new javax.swing.JTextField();
+        lblTotalLabel = new javax.swing.JLabel();
+        lblTotalValue = new javax.swing.JLabel();
         pSouth = new javax.swing.JPanel();
+        btnCancel = new javax.swing.JButton();
         btnCheckout = new javax.swing.JButton();
         pTableArea = new javax.swing.JPanel();
         lblTablesTitle = new javax.swing.JLabel();
@@ -219,49 +415,84 @@ private void setTableColor(JButton btn, int status, boolean selected) {
 
         pBillArea.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
-        pBillBottom.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        pBillBottom.setLayout(new java.awt.GridLayout(2, 1, 0, 10));
+        pBillBottom.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        pBillBottom.setLayout(new java.awt.BorderLayout(0, 10));
 
-        pActionRow.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 8));
+        // Summary panel with GridBagLayout for better control
+        pSummaryPanel.setLayout(new java.awt.GridBagLayout());
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        gbc.insets = new java.awt.Insets(5, 5, 5, 5);
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
 
-        jLabel3.setText("Món");
-        pActionRow.add(jLabel3);
+        // Tạm tính
+        lblSubtotalLabel.setText("Tạm tính:");
+        lblSubtotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.5;
+        pSummaryPanel.add(lblSubtotalLabel, gbc);
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        pActionRow.add(jComboBox2);
+        lblSubtotalValue.setText("0đ");
+        lblSubtotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        lblSubtotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        gbc.gridx = 1;
+        gbc.weightx = 0.5;
+        gbc.anchor = java.awt.GridBagConstraints.EAST;
+        pSummaryPanel.add(lblSubtotalValue, gbc);
 
-        jLabel4.setText("Số lượng");
-        pActionRow.add(jLabel4);
-        pActionRow.add(jSpinner1);
+        // Giảm giá
+        lblDiscountLabel.setText("Giảm giá (%):");
+        lblDiscountLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        pSummaryPanel.add(lblDiscountLabel, gbc);
 
-        jButton15.setText("Thêm");
-        pActionRow.add(jButton15);
+        txtDiscountPercent.setText("0");
+        txtDiscountPercent.setPreferredSize(new java.awt.Dimension(80, 25));
+        txtDiscountPercent.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        gbc.gridx = 1;
+        gbc.anchor = java.awt.GridBagConstraints.EAST;
+        pSummaryPanel.add(txtDiscountPercent, gbc);
 
-        jLabel5.setText("Tổng tiền");
-        pActionRow.add(jLabel5);
+        // Tổng cộng
+        lblTotalLabel.setText("Tổng cộng:");
+        lblTotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        pSummaryPanel.add(lblTotalLabel, gbc);
 
-        pBillBottom.add(pActionRow);
+        lblTotalValue.setText("0đ");
+        lblTotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+        lblTotalValue.setForeground(new java.awt.Color(52, 152, 219));
+        lblTotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        gbc.gridx = 1;
+        gbc.anchor = java.awt.GridBagConstraints.EAST;
+        pSummaryPanel.add(lblTotalValue, gbc);
+
+        pBillBottom.add(pSummaryPanel, java.awt.BorderLayout.CENTER);
+
+        // Buttons panel
+        pSouth.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
+
+        btnCancel.setText("HỦY");
+        btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btnCancel.setPreferredSize(new java.awt.Dimension(120, 40));
+        btnCancel.setBackground(new java.awt.Color(231, 76, 60));
+        btnCancel.setForeground(java.awt.Color.WHITE);
+        btnCancel.setFocusPainted(false);
+        pSouth.add(btnCancel);
 
         btnCheckout.setText("THANH TOÁN");
+        btnCheckout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btnCheckout.setPreferredSize(new java.awt.Dimension(150, 40));
+        btnCheckout.setBackground(new java.awt.Color(46, 204, 113));
+        btnCheckout.setForeground(java.awt.Color.WHITE);
+        btnCheckout.setFocusPainted(false);
+        pSouth.add(btnCheckout);
 
-        javax.swing.GroupLayout pSouthLayout = new javax.swing.GroupLayout(pSouth);
-        pSouth.setLayout(pSouthLayout);
-        pSouthLayout.setHorizontalGroup(
-            pSouthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pSouthLayout.createSequentialGroup()
-                .addGap(122, 122, 122)
-                .addComponent(btnCheckout)
-                .addContainerGap(147, Short.MAX_VALUE))
-        );
-        pSouthLayout.setVerticalGroup(
-            pSouthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pSouthLayout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addComponent(btnCheckout)
-                .addContainerGap(39, Short.MAX_VALUE))
-        );
-
-        pBillBottom.add(pSouth);
+        pBillBottom.add(pSouth, java.awt.BorderLayout.SOUTH);
 
         pBillArea.add(pBillBottom, java.awt.BorderLayout.PAGE_END);
 
@@ -325,12 +556,12 @@ private void setTableColor(JButton btn, int status, boolean selected) {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAll;
     private javax.swing.JButton btnCake;
+    private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnCheckout;
     private javax.swing.JButton btnCoffee;
     private javax.swing.JButton btnJuice;
     private javax.swing.JButton btnTea;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -338,29 +569,30 @@ private void setTableColor(JButton btn, int status, boolean selected) {
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
-    private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTable jTable1;
+    private javax.swing.JLabel lblDiscountLabel;
+    private javax.swing.JLabel lblSubtotalLabel;
+    private javax.swing.JLabel lblSubtotalValue;
     private javax.swing.JLabel lblTablesTitle;
-    private javax.swing.JPanel pActionRow;
+    private javax.swing.JLabel lblTotalLabel;
+    private javax.swing.JLabel lblTotalValue;
     private javax.swing.JPanel pBillArea;
     private javax.swing.JPanel pBillBottom;
     private javax.swing.JPanel pBillHeader;
     private javax.swing.JPanel pFilterBar;
     private javax.swing.JPanel pMenuArea;
     private javax.swing.JPanel pSouth;
+    private javax.swing.JPanel pSummaryPanel;
     private javax.swing.JPanel pTableArea;
     private javax.swing.JPanel pTablesGrid;
+    private javax.swing.JTextField txtDiscountPercent;
     // End of variables declaration//GEN-END:variables
 }

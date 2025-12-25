@@ -1,6 +1,5 @@
 package com.cafe.main;
 
-import com.cafe.view.login.LoginFrame;
 import com.cafe.view.sales.SalesPanel;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -16,7 +15,5 @@ public class Main {
             f.setLocationRelativeTo(null);
             f.setVisible(true);
         });
-        
-        
     }
 }
