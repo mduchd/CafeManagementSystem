@@ -13,10 +13,7 @@ public class DatabaseConnection {
     public static Connection getConnection() {
         Connection conn = null;
         try {
-            // 2. Đăng ký Driver MySQL (Cần add thư viện mysql-connector-j vào project)
             Class.forName("com.mysql.cj.jdbc.Driver");
-            
-            // 3. Thực hiện kết nối
             conn = DriverManager.getConnection(URL, USER, PASS);
             
         } catch (ClassNotFoundException e) {
@@ -29,9 +26,6 @@ public class DatabaseConnection {
         return conn;
     }
 
-    /**
-     * Hàm đóng kết nối để giải phóng tài nguyên
-     */
     public static void closeConnection(Connection conn) {
         if (conn != null) {
             try {
