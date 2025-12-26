@@ -22,10 +22,11 @@ public class AuthDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    user = new User();
-                    user.setUserName(rs.getString("Username"));
-                    user.setRole(rs.getString("Role"));
-                    user.setFullName(rs.getString("TenHienThi"));
+                    User u = new User();
+                    u.setUserName(rs.getString("Username"));
+                    u.setRole(rs.getString("Role"));
+                    u.setFullName(rs.getString("TenHienThi"));
+                    return u;
                 }
             }
 
@@ -33,6 +34,6 @@ public class AuthDAO {
             e.printStackTrace();
         }
 
-        return user;
+        return null;
     }
 }

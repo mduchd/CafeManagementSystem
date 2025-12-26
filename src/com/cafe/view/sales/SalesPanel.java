@@ -1,19 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
+
 package com.cafe.view.sales;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.text.NumberFormat;
 import java.util.*;
-import java.util.List;
-/**
- *
- * @author Owner
- */
+
 public class SalesPanel extends javax.swing.JPanel {
 
     private static final Color COLOR_EMPTY = new Color(46, 204, 113);     // xanh: trống
@@ -21,6 +13,7 @@ public class SalesPanel extends javax.swing.JPanel {
     private static final Color COLOR_SELECTED = new Color(52, 152, 219);  // xanh dương: đang chọn
     private final Map<Integer, Integer> tableStatus = new HashMap<>(); // 0 trống, 1 có khách
     private int selectedTableNo = 1;
+    private final com.cafe.service.ProductService productService = new com.cafe.service.ProductService();
     
     public SalesPanel() {
         initComponents();
@@ -67,8 +60,7 @@ public class SalesPanel extends javax.swing.JPanel {
         new String[]{"Món", "SL", "Đơn giá", "Thành tiền"}
     ));
     
-    // 5) Setup menu items grid
-    setupMenuItems();
+
     
     // 6) Setup discount field listener
     txtDiscountPercent.addActionListener(e -> updateTotalAmount());
@@ -82,43 +74,7 @@ public class SalesPanel extends javax.swing.JPanel {
     btnCancel.addActionListener(e -> clearBill());
 }
 
-private void setupMenuItems() {
-    // Tạo panel chứa menu items với GridLayout
-    JPanel pMenuGrid = new JPanel();
-    pMenuGrid.setLayout(new GridLayout(0, 3, 12, 12)); // 3 cột, khoảng cách 12px
-    pMenuGrid.setBorder(new EmptyBorder(10, 10, 10, 10));
-    
-    // Danh sách menu items mẫu
-    String[][] menuItems = {
-        {"Cà phê đen", "15,000đ", "COFFEE"},
-        {"Cà phê sữa", "18,000đ", "COFFEE"},
-        {"Bạc xỉu", "20,000đ", "COFFEE"},
-        {"Cappuccino", "25,000đ", "COFFEE"},
-        {"Latte", "28,000đ", "COFFEE"},
-        {"Espresso", "22,000đ", "COFFEE"},
-        {"Trà đào", "25,000đ", "TEA"},
-        {"Trà chanh", "20,000đ", "TEA"},
-        {"Trà sữa", "22,000đ", "TEA"},
-        {"Trà xanh", "18,000đ", "TEA"},
-        {"Nước cam", "20,000đ", "JUICE"},
-        {"Nước ép dưa hấu", "18,000đ", "JUICE"},
-        {"Sinh tố bơ", "25,000đ", "JUICE"},
-        {"Nước chanh", "15,000đ", "JUICE"},
-        {"Bánh flan", "15,000đ", "CAKE"},
-        {"Bánh tiramisu", "30,000đ", "CAKE"},
-        {"Bánh cheesecake", "28,000đ", "CAKE"},
-        {"Bánh croissant", "20,000đ", "CAKE"}
-    };
-    
-    // Tạo button cho mỗi menu item
-    for (String[] item : menuItems) {
-        JButton btnItem = createMenuItemButton(item[0], item[1], item[2]);
-        pMenuGrid.add(btnItem);
-    }
-    
-    // Thêm panel vào scroll pane
-    jScrollPane1.setViewportView(pMenuGrid);
-}
+
 
 private JButton createMenuItemButton(String name, String price, String category) {
     JButton btn = new JButton();
