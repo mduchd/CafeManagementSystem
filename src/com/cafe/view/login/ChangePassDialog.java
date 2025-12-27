@@ -193,7 +193,7 @@ public class ChangePassDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnChangePassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangePassActionPerformed
-        String username = com.cafe.service.UserSession.getCurrentUser().getUserName();
+        String username = com.cafe.service.UserSession.getCurrentUser().getUsername();
         
         String oldPass = new String(txtOldPass.getPassword()); 
         String newPass = new String(txtNewPass.getPassword());

@@ -11,7 +11,7 @@ import java.sql.SQLException; // Nên bắt SQLException thay vì Exception chun
 public class AuthDAO {
 
     public User login(String username, String password) {
-        String sql = "SELECT Username, Role, TenHienThi FROM Taikhoan WHERE Username = ? AND PASSWORD = ?";
+        String sql = "SELECT Username, Role, TenHienThi FROM taikhoan WHERE Username = ? AND PASSWORD = ?";
         
         // SỬA LỖI 1: Đưa cả conn và stmt vào trong ngoặc tròn của try
         try (Connection conn = DatabaseConnection.getConnection();
@@ -36,7 +36,7 @@ public class AuthDAO {
     }
     
     public String getPasswordByUserName(String username) {
-        String sql = "SELECT Password FROM Taikhoan WHERE Username = ?";
+        String sql = "SELECT Password FROM taikhoan WHERE Username = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -55,7 +55,7 @@ public class AuthDAO {
 
     // Update mật khẩu
     public boolean updatePassword(String username, String newPassword) {
-        String sql = "UPDATE Taikhoan SET Password = ? WHERE Username = ?";
+        String sql = "UPDATE taikhoan SET Password = ? WHERE Username = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

@@ -5,7 +5,8 @@ import javax.swing.JOptionPane;
 
 public class LoginFrame extends javax.swing.JFrame {
     
-   private final com.cafe.service.AuthService authService = new com.cafe.service.AuthService();
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LoginFrame.class.getName());
+    private final com.cafe.service.AuthService authService = new com.cafe.service.AuthService();
     /**
      * Creates new form LoginFrame
      */
@@ -173,7 +174,7 @@ public class LoginFrame extends javax.swing.JFrame {
         com.cafe.service.UserSession.setCurrentUser(u);
     
     // mo main theo role 
-    com.cafe.view.main.MainFrame mf = new com.cafe.view.main.MainFrame(u);
+    com.cafe.view.main.MainFrame mf = new com.cafe.view.main.MainFrame();
     mf.setLocationRelativeTo(null);
     mf.setVisible(true);
     this.dispose();

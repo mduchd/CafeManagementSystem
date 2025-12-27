@@ -150,12 +150,13 @@ public class MainFrame extends javax.swing.JFrame {
     
     /**
      * Add logout button for STAFF users in top-right corner
+     * This method wraps the SalesPanel with a logout button at the top
      */
     private void addStaffLogoutButton() {
         // Create logout panel
         javax.swing.JPanel pStaffLogout = new javax.swing.JPanel();
         pStaffLogout.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 10));
-        pStaffLogout.setOpaque(false);
+        pStaffLogout.setBackground(java.awt.Color.WHITE);
         
         // User info label
         javax.swing.JLabel lblUserInfo = new javax.swing.JLabel();
@@ -182,8 +183,16 @@ public class MainFrame extends javax.swing.JFrame {
         });
         pStaffLogout.add(btnStaffLogout);
         
-        // Add to top of content area
-        pContent.add(pStaffLogout, java.awt.BorderLayout.PAGE_START);
+        // Create a wrapper panel with BorderLayout to hold both logout button and SalesPanel
+        javax.swing.JPanel wrapperPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        wrapperPanel.add(pStaffLogout, java.awt.BorderLayout.PAGE_START);
+        wrapperPanel.add(new SalesPanel(), java.awt.BorderLayout.CENTER);
+        
+        // Replace the SALES card with the wrapper panel
+        pContent.removeAll();
+        pContent.add(wrapperPanel, "SALES");
+        pContent.revalidate();
+        pContent.repaint();
     }
     
     private void setupMenuButton(javax.swing.JButton btn, String text, String cardName) {
