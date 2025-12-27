@@ -2,35 +2,20 @@
 package com.cafe.model;
 
 public class User {
-    private String userName;
-    private String passWord; 
+    private String username;
+    private String password; 
     private String role; // admin or employee
-    private String fullName;
+    private String fullname;
     
     public User() {
     }
-    
-    public User(String usernName, String passWord, String role, String fullName) {
-        this.userName = userName;
-        this.passWord = passWord;
-        this.role = role;
-        this.fullName = fullName;
+
+    public String getUsername() {
+        return username;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return passWord;
-    }
-
-    public void setPassword(String password) {
-        this.passWord = password;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getRole() {
@@ -41,13 +26,15 @@ public class User {
         this.role = role;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getFullname() {
+        return fullname;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
     }
     
+    
+   
     
 }
