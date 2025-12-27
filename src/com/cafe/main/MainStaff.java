@@ -13,7 +13,7 @@ public class MainStaff {
         SwingUtilities.invokeLater(() -> {
             // Login as STAFF
             User staffUser = new User("staff", "password", "staff", "Nhân viên Demo");
-            UserSession.getInstance().login(staffUser);
+            UserSession.setCurrentUser(staffUser);
             
             // Create and show MainFrame
             MainFrame frame = new MainFrame();

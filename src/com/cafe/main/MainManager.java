@@ -13,7 +13,7 @@ public class MainManager {
         SwingUtilities.invokeLater(() -> {
             // Login as MANAGER
             User managerUser = new User("manager", "password", "manager", "Quản lý Demo");
-            UserSession.getInstance().login(managerUser);
+            UserSession.setCurrentUser(managerUser);
             
             // Create and show MainFrame
             MainFrame frame = new MainFrame();

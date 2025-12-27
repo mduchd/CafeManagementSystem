@@ -2,9 +2,7 @@
 package com.cafe.view.main;
 
 import com.cafe.view.sales.SalesPanel;
-import com.cafe.model.User;
 import com.cafe.service.UserSession;
-import javax.swing.*;
 /**
  *
  * @author Owner
@@ -71,7 +69,7 @@ public class MainFrame extends javax.swing.JFrame {
         applyRolePermissions();
         
         // Set initial active button (only if manager)
-        if (UserSession.getInstance().isManager()) {
+        if (UserSession.isManager()) {
             setActiveButton(btnSales);
         }
         cardLayout.show(pContent, "SALES");
@@ -93,9 +91,9 @@ public class MainFrame extends javax.swing.JFrame {
         lblRole.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         
         // Update role label based on current user
-        UserSession session = UserSession.getInstance();
-        String roleText = session.getCurrentRole().getDisplayName();
-        String userName = session.getCurrentUserName();
+        com.cafe.model.User user = UserSession.getCurrentUser();
+        String userName = user != null ? (user.getFullname() != null ? user.getFullname() : user.getUsername()) : "Guest";
+        String roleText = UserSession.isManager() ? "Quản lý" : "Nhân viên";
         lblRole.setText("<html><center>" + userName + "<br><small>" + roleText + "</small></center></html>");
         
         pRoleIndicator.add(lblRole, java.awt.BorderLayout.CENTER);
@@ -108,7 +106,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnLogout.setBorderPainted(false);
         btnLogout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
         btnLogout.addActionListener(e -> {
-            UserSession.getInstance().logout();
+            UserSession.clear();
             dispose();
             // TODO: Show login screen
         });
@@ -123,9 +121,7 @@ public class MainFrame extends javax.swing.JFrame {
      * Apply role-based permissions to menu items
      */
     private void applyRolePermissions() {
-        UserSession session = UserSession.getInstance();
-        
-        if (session.isStaff()) {
+        if (UserSession.isStaff()) {
             // STAFF: Hide sidebar completely, show only SalesPanel
             pSidebar.setVisible(false);
             
@@ -134,7 +130,7 @@ public class MainFrame extends javax.swing.JFrame {
             
             // Add logout button for STAFF in top-right corner
             addStaffLogoutButton();
-        } else if (session.isManager()) {
+        } else if (UserSession.isManager()) {
             // MANAGER: Show sidebar with all menus
             pSidebar.setVisible(true);
             
@@ -160,7 +156,9 @@ public class MainFrame extends javax.swing.JFrame {
         
         // User info label
         javax.swing.JLabel lblUserInfo = new javax.swing.JLabel();
-        lblUserInfo.setText(UserSession.getInstance().getCurrentUserName() + " (Nhân viên)");
+        com.cafe.model.User user = UserSession.getCurrentUser();
+        String userName = user != null ? (user.getFullname() != null ? user.getFullname() : user.getUsername()) : "Guest";
+        lblUserInfo.setText(userName + " (Nhân viên)");
         lblUserInfo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
         pStaffLogout.add(lblUserInfo);
         
@@ -173,7 +171,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnStaffLogout.setBorderPainted(false);
         btnStaffLogout.setPreferredSize(new java.awt.Dimension(90, 30));
         btnStaffLogout.addActionListener(e -> {
-            UserSession.getInstance().logout();
+            UserSession.clear();
             dispose();
             // TODO: Show login screen
             javax.swing.JOptionPane.showMessageDialog(null, 
