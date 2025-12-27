@@ -21,48 +21,97 @@ public class SalesPanel extends javax.swing.JPanel {
     }
     
     private void initLogic() {
-    // 1) Setup nút bàn (8 bàn theo UI bạn đang có)
+    // 1) Setup table buttons with custom styling
     JButton[] tableBtns = { jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton7, jButton8 };
 
     for (int i = 0; i < tableBtns.length; i++) {
         int tableNo = i + 1;
         JButton b = tableBtns[i];
 
+        // Set text
         b.setText("Bàn " + tableNo);
+        
+        // Set style
         b.setFocusPainted(false);
         b.setOpaque(true);
         b.setContentAreaFilled(true);
+        b.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        b.setForeground(java.awt.Color.WHITE);
 
-        tableStatus.put(tableNo, 0);              // mặc định trống
+        // Initialize table status (0 = empty, 1 = busy)
+        tableStatus.put(tableNo, 0);
+        
+        // Set initial color
         setTableColor(b, 0, tableNo == selectedTableNo);
 
+        // Add click handler
         b.addActionListener(e -> selectTable(tableNo));
     }
 
-    // demo: bàn 2 có khách
+    // Demo: Table 2 is busy
     tableStatus.put(2, 1);
     refreshAllTableColors();
-
-    // 2) Filter buttons (đổi text cho đẹp)
+    
+    // 2) Customize filter buttons
     btnAll.setText("Tất cả");
     btnCoffee.setText("Cà phê");
     btnTea.setText("Trà");
     btnJuice.setText("Nước");
     btnCake.setText("Bánh");
-
-    // 3) Bill header label (đang là jLabel1/jLabel2 trong form)
+    
+    // 3) Customize bill header labels
     jLabel1.setText("Bàn 01");
+    jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+    
     jLabel2.setText("Dùng tại bàn");
-
-    // 4) Bill table model
+    jLabel2.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
+    
+    // 4) Setup bill table model
     jTable1.setModel(new javax.swing.table.DefaultTableModel(
         new Object[][]{},
         new String[]{"Món", "SL", "Đơn giá", "Thành tiền"}
     ));
     
-
+    // 5) Customize summary labels
+    lblSubtotalLabel.setText("Tạm tính:");
+    lblSubtotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
     
-    // 6) Setup discount field listener
+    lblSubtotalValue.setText("0đ");
+    lblSubtotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+    lblSubtotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+    
+    lblDiscountLabel.setText("Giảm giá (%):");
+    lblDiscountLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+    
+    lblTotalLabel.setText("Tổng cộng:");
+    lblTotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
+    
+    lblTotalValue.setText("0đ");
+    lblTotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+    lblTotalValue.setForeground(new java.awt.Color(52, 152, 219)); // Blue
+    lblTotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+    
+    // 6) Customize action buttons
+    btnCancel.setText("HỦY");
+    btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+    btnCancel.setBackground(new java.awt.Color(231, 76, 60)); // Red
+    btnCancel.setForeground(java.awt.Color.WHITE);
+    btnCancel.setFocusPainted(false);
+    btnCancel.setPreferredSize(new java.awt.Dimension(120, 40));
+    
+    btnCheckout.setText("THANH TOÁN");
+    btnCheckout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+    btnCheckout.setBackground(new java.awt.Color(46, 204, 113)); // Green
+    btnCheckout.setForeground(java.awt.Color.WHITE);
+    btnCheckout.setFocusPainted(false);
+    btnCheckout.setPreferredSize(new java.awt.Dimension(150, 40));
+    
+    // 7) Customize discount field
+    txtDiscountPercent.setText("0");
+    txtDiscountPercent.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+    txtDiscountPercent.setPreferredSize(new java.awt.Dimension(80, 25));
+    
+    // 8) Setup event handlers
     txtDiscountPercent.addActionListener(e -> updateTotalAmount());
     txtDiscountPercent.addFocusListener(new java.awt.event.FocusAdapter() {
         public void focusLost(java.awt.event.FocusEvent evt) {
@@ -70,7 +119,6 @@ public class SalesPanel extends javax.swing.JPanel {
         }
     });
     
-    // 7) Setup cancel button
     btnCancel.addActionListener(e -> clearBill());
 }
 

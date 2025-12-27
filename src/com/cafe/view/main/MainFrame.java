@@ -18,6 +18,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     private javax.swing.JButton activeButton = null;
     private java.awt.CardLayout cardLayout;
+    private SalesPanel salesPanel; // Store SalesPanel instance to reuse
 
     /**
      * Creates new form MainFrame
@@ -36,8 +37,11 @@ public class MainFrame extends javax.swing.JFrame {
         // Setup CardLayout
         cardLayout = (java.awt.CardLayout) pContent.getLayout();
         
+        // Create and store SalesPanel instance (will be reused for STAFF)
+        salesPanel = new SalesPanel();
+        
         // Add panels to content area
-        pContent.add(new SalesPanel(), "SALES");
+        pContent.add(salesPanel, "SALES");
         pContent.add(createPlaceholderPanel("Quản lý Bàn"), "TABLES");
         pContent.add(createPlaceholderPanel("Quản lý Sản phẩm"), "PRODUCTS");
         pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
@@ -182,6 +186,7 @@ public class MainFrame extends javax.swing.JFrame {
         pStaffLogout.add(btnStaffLogout);
         
         // Create a wrapper panel with BorderLayout to hold both logout button and SalesPanel
+        // Note: Create NEW SalesPanel for STAFF to avoid rendering issues when moving between layouts
         javax.swing.JPanel wrapperPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
         wrapperPanel.add(pStaffLogout, java.awt.BorderLayout.PAGE_START);
         wrapperPanel.add(new SalesPanel(), java.awt.BorderLayout.CENTER);
@@ -335,22 +340,12 @@ public class MainFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+        /* Set Metal look and feel - flat colors, no gradients */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new MainFrame().setVisible(true));
