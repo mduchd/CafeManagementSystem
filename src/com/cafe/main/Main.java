@@ -1,19 +1,19 @@
 package com.cafe.main;
 
-import com.cafe.view.sales.SalesPanel;
-import javax.swing.JFrame;
+import com.cafe.view.login.LoginFrame;
 import javax.swing.SwingUtilities;
 
+/**
+ * Main entry point for Cafe Management System
+ * Flow: LoginFrame -> MainFrame (with role-based UI)
+ */
 public class Main {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame f = new JFrame("Sales Demo");
-            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.setContentPane(new SalesPanel());
-            f.setSize(1200, 700);
-            f.setLocationRelativeTo(null);
-            f.setVisible(true);
+            LoginFrame loginFrame = new LoginFrame();
+            loginFrame.setLocationRelativeTo(null);
+            loginFrame.setVisible(true);
         });
     }
 }

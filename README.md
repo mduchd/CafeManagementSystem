@@ -171,5 +171,5 @@ Trưởng nhóm review trước khi merge
 | Nguyễn Minh Đức | Quản lý bán hàng + đăng nhập, đăng xuất |
 | Nguyễn Thúy Hiền | Quản lý sản phẩm |
 | Lê Tiến Quân | Báo cáo và thống kê |
-| Lê Thị Dịu | Quản lý bàn |
-| Vũ Ngọc Sơn | Quản lý nhân sự + Quản lý kho |
+| Lê Thị Dịu | Quản lý kho |
+| Vũ Ngọc Sơn | Quản lý nhân sự + Quản lý bàn |
