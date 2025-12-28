@@ -193,19 +193,81 @@ public class ChangePassDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnChangePassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangePassActionPerformed
-        String username = com.cafe.service.UserSession.getCurrentUser().getUsername();
-        
-        String oldPass = new String(txtOldPass.getPassword()); 
-        String newPass = new String(txtNewPass.getPassword());
-        String confirm = new String(txtConfirmPass.getPassword());
-        
-        if (!newPass.equals(confirm)) {
-            JOptionPane.showMessageDialog(this,"Mat khau moi khong khop!");
+        // Get current user
+        com.cafe.model.User currentUser = com.cafe.service.UserSession.getCurrentUser();
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Không tìm thấy thông tin người dùng!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        JOptionPane.showMessageDialog(this, "Doi mat khau thanh cong!");
-        this.dispose();
+        String username = currentUser.getUsername();
+        String oldPass = new String(txtOldPass.getPassword()).trim(); 
+        String newPass = new String(txtNewPass.getPassword()).trim();
+        String confirm = new String(txtConfirmPass.getPassword()).trim();
+        
+        // Validate empty fields
+        if (oldPass.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Vui lòng điền đầy đủ thông tin!", 
+                "Cảnh báo", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validate new password length
+        if (newPass.length() < 3) {
+            JOptionPane.showMessageDialog(this, 
+                "Mật khẩu mới phải có ít nhất 3 ký tự!", 
+                "Cảnh báo", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validate password confirmation
+        if (!newPass.equals(confirm)) {
+            JOptionPane.showMessageDialog(this, 
+                "Mật khẩu mới không khớp!", 
+                "Cảnh báo", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Verify old password
+        com.cafe.dao.AuthDAO authDAO = new com.cafe.dao.AuthDAO();
+        String currentPassword = authDAO.getPasswordByUserName(username);
+        
+        if (currentPassword == null || !currentPassword.equals(oldPass)) {
+            JOptionPane.showMessageDialog(this, 
+                "Mật khẩu hiện tại không đúng!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Update password
+        boolean success = authDAO.updatePassword(username, newPass);
+        
+        if (success) {
+            JOptionPane.showMessageDialog(this, 
+                "Đổi mật khẩu thành công!", 
+                "Thành công", 
+                JOptionPane.INFORMATION_MESSAGE);
+            
+            // Clear fields
+            txtOldPass.setText("");
+            txtNewPass.setText("");
+            txtConfirmPass.setText("");
+            
+            this.dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Đổi mật khẩu thất bại! Vui lòng thử lại.", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnChangePassActionPerformed
 
     /**

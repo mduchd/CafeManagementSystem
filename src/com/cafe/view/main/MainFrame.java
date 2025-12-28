@@ -102,6 +102,29 @@ public class MainFrame extends javax.swing.JFrame {
         
         pRoleIndicator.add(lblRole, java.awt.BorderLayout.CENTER);
         
+        // Button panel (for Change Password and Logout buttons)
+        javax.swing.JPanel pButtons = new javax.swing.JPanel();
+        pButtons.setBackground(SIDEBAR_BG);
+        pButtons.setLayout(new java.awt.GridLayout(2, 1, 0, 5));
+        
+        // Change Password button (only for Manager/Admin)
+        if (UserSession.isManager()) {
+            javax.swing.JButton btnChangePass = new javax.swing.JButton("Đổi mật khẩu");
+            btnChangePass.setForeground(java.awt.Color.WHITE);
+            btnChangePass.setBackground(new java.awt.Color(52, 152, 219)); // Blue color
+            btnChangePass.setFocusPainted(false);
+            btnChangePass.setBorderPainted(false);
+            btnChangePass.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
+            btnChangePass.addActionListener(e -> {
+                // Open ChangePassDialog
+                com.cafe.view.login.ChangePassDialog dialog = 
+                    new com.cafe.view.login.ChangePassDialog(this, true);
+                dialog.setLocationRelativeTo(this);
+                dialog.setVisible(true);
+            });
+            pButtons.add(btnChangePass);
+        }
+        
         // Logout button
         javax.swing.JButton btnLogout = new javax.swing.JButton("Đăng xuất");
         btnLogout.setForeground(java.awt.Color.WHITE);
@@ -114,8 +137,9 @@ public class MainFrame extends javax.swing.JFrame {
             dispose();
             // TODO: Show login screen
         });
+        pButtons.add(btnLogout);
         
-        pRoleIndicator.add(btnLogout, java.awt.BorderLayout.SOUTH);
+        pRoleIndicator.add(pButtons, java.awt.BorderLayout.SOUTH);
         
         // Add to sidebar
         pSidebar.add(pRoleIndicator, java.awt.BorderLayout.PAGE_END);

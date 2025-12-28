@@ -57,7 +57,10 @@ CREATE TABLE ChiTietHoaDon (
 
 -- Thêm dữ liệu mẫu
 INSERT INTO TaiKhoan VALUES ('admin', '123', 'Admin', N'Quản Lý');
+INSERT INTO TaiKhoan VALUES ('nhanvien', '123', 'NhanVien', N'Nhân Viên A');
+
 INSERT INTO SanPham (TenSP, LoaiSP, GiaBan, TrangThai) VALUES
 (N'Cafe Sữa',  N'Cafe', 25000, 'DangBan'),
-(N'Trà Đào',   N'Trà',  30000, 'DangBan'),
+(N'Trà Đào',   N'Trà',  30000, 'DangBan');
+
 
