@@ -1,7 +1,8 @@
 package com.cafe.main;
 
 import javax.swing.JFrame;
-import com.cafe.view.product.ProductPanel; // sửa đúng package của bạn
+import java.awt.BorderLayout;
+import com.cafe.view.product.ProductPanel;
 
 public class MainUI extends JFrame {
 
@@ -11,10 +12,13 @@ public class MainUI extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        add(new ProductPanel());
+        setLayout(new BorderLayout());          
+        add(new ProductPanel(), BorderLayout.CENTER);
     }
 
     public static void main(String[] args) {
-        new MainUI().setVisible(true);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new MainUI().setVisible(true);
+        });
     }
 }
