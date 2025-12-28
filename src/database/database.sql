@@ -13,6 +13,7 @@ CREATE TABLE TaiKhoan (
 CREATE TABLE SanPham (
     MaSP INT AUTO_INCREMENT PRIMARY KEY,
     TenSP NVARCHAR(100) NOT NULL,
+    LoaiSP NVARCHAR(50) NOT NULL,
     GiaBan DOUBLE NOT NULL,
     TrangThai NVARCHAR(20) DEFAULT 'DangBan'
 );
@@ -56,4 +57,7 @@ CREATE TABLE ChiTietHoaDon (
 
 -- Thêm dữ liệu mẫu
 INSERT INTO TaiKhoan VALUES ('admin', '123', 'Admin', N'Quản Lý');
-INSERT INTO SanPham (TenSP, GiaBan) VALUES (N'Cafe Đen', 20000), (N'Cafe Sữa', 25000);
+INSERT INTO SanPham (TenSP, LoaiSP, GiaBan, TrangThai) VALUES
+(N'Cafe Sữa',  N'Cafe', 25000, 'DangBan'),
+(N'Trà Đào',   N'Trà',  30000, 'DangBan'),
+

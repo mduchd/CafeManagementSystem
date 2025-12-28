@@ -13,15 +13,17 @@ public class Product {
     private String name;
     private String category;
     private double price;
+    private String status;
     
     public Product() {
     }
     
-    public Product(int id, String name, String category, double price) {
+    public Product(int id, String name, String category, double price, String status) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.price = price;
+        this.status = status;
     }
     
     // Getters
@@ -41,6 +43,10 @@ public class Product {
         return price;
     }
     
+    public String getStatus() {
+        return status;
+    }
+    
     // Setters
     public void setId(int id) {
         this.id = id;
@@ -56,5 +62,9 @@ public class Product {
     
     public void setPrice(double price) {
         this.price = price;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
