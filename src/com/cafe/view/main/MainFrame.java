@@ -230,7 +230,7 @@ public class MainFrame extends javax.swing.JFrame {
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(true);
         btn.setOpaque(true);
-        btn.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        btn.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
         btn.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         btn.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 20, 12, 20));
         btn.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 50));

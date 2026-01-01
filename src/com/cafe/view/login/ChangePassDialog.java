@@ -20,7 +20,60 @@ public class ChangePassDialog extends javax.swing.JDialog {
     public ChangePassDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        addLogoToChangePassDialog();
     }
+    
+    /**
+     * Add coffee logo icon above "Java Coffee" text
+     */
+    private void addLogoToChangePassDialog() {
+        // Create logo label with image or fallback to coffee icon
+        javax.swing.JLabel lblLogo = new javax.swing.JLabel();
+        
+        // Try to load image from icon folder
+        try {
+            java.net.URL imageUrl = getClass().getResource("/icon/logo.png");
+            if (imageUrl != null) {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imageUrl);
+                // Scale image to 100x100
+                java.awt.Image scaledImage = icon.getImage().getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH);
+                lblLogo.setIcon(new javax.swing.ImageIcon(scaledImage));
+            } else {
+                // Fallback to coffee emoji if image not found
+                lblLogo.setText("☕");
+                lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 80));
+                lblLogo.setForeground(new java.awt.Color(255, 255, 255));
+            }
+        } catch (Exception e) {
+            // Fallback to coffee emoji if error
+            lblLogo.setText("☕");
+            lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 80));
+            lblLogo.setForeground(new java.awt.Color(255, 255, 255));
+        }
+        
+        lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
+        // Hide the placeholder jLabel6
+        jLabel6.setVisible(false);
+        
+        // Update pLeft panel layout to include logo
+        pLeft.setLayout(new java.awt.GridBagLayout());
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        
+        // Logo at top
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new java.awt.Insets(150, 0, 20, 0);
+        pLeft.add(lblLogo, gbc);
+        
+        // "Java Coffee" text below logo
+        gbc.gridy = 1;
+        gbc.insets = new java.awt.Insets(0, 0, 150, 0);
+        pLeft.add(jLabel5, gbc);
+    }
+
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -56,7 +109,7 @@ public class ChangePassDialog extends javax.swing.JDialog {
         pRight.setPreferredSize(new java.awt.Dimension(400, 500));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(153, 51, 0));
+        jLabel1.setForeground(new java.awt.Color(30, 58, 95));
         jLabel1.setText("Đổi mật khẩu");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
@@ -68,12 +121,12 @@ public class ChangePassDialog extends javax.swing.JDialog {
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel4.setText("Nhập lại mật khẩu");
 
-        jButton1.setBackground(new java.awt.Color(153, 51, 0));
+        jButton1.setBackground(new java.awt.Color(30, 58, 95));
         jButton1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jButton1.setForeground(new java.awt.Color(255, 255, 255));
         jButton1.setText("Hủy");
 
-        btnChangePass.setBackground(new java.awt.Color(153, 51, 0));
+        btnChangePass.setBackground(new java.awt.Color(30, 58, 95));
         btnChangePass.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         btnChangePass.setForeground(new java.awt.Color(255, 255, 255));
         btnChangePass.setText("Thay đổi mật khẩu");
@@ -142,7 +195,7 @@ public class ChangePassDialog extends javax.swing.JDialog {
         jPanel2.add(pRight);
         pRight.setBounds(400, 0, 400, 500);
 
-        pLeft.setBackground(new java.awt.Color(153, 51, 0));
+        pLeft.setBackground(new java.awt.Color(30, 58, 95));
         pLeft.setPreferredSize(new java.awt.Dimension(400, 500));
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
