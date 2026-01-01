@@ -120,7 +120,31 @@ public class SalesPanel extends javax.swing.JPanel {
     });
     
     btnCancel.addActionListener(e -> clearBill());
+    
+    // 9) Setup Legend Panel (Chú thích màu sắc)
+    // Sử dụng HTML để hiển thị hình tròn màu đúng
+    JLabel lblEmpty = new JLabel(String.format(
+        "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Trống</html>",
+        COLOR_EMPTY.getRed(), COLOR_EMPTY.getGreen(), COLOR_EMPTY.getBlue()
+    ));
+    lblEmpty.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+    pLegend.add(lblEmpty);
+    
+    JLabel lblBusy = new JLabel(String.format(
+        "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Có khách</html>",
+        COLOR_BUSY.getRed(), COLOR_BUSY.getGreen(), COLOR_BUSY.getBlue()
+    ));
+    lblBusy.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+    pLegend.add(lblBusy);
+    
+    JLabel lblSelected = new JLabel(String.format(
+        "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đang chọn</html>",
+        COLOR_SELECTED.getRed(), COLOR_SELECTED.getGreen(), COLOR_SELECTED.getBlue()
+    ));
+    lblSelected.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+    pLegend.add(lblSelected);
 }
+
 
 
 
@@ -307,17 +331,19 @@ private void setTableColor(JButton btn, int status, boolean selected) {
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         pBillBottom = new javax.swing.JPanel();
-        pActionRow = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
-        jLabel4 = new javax.swing.JLabel();
-        jSpinner1 = new javax.swing.JSpinner();
-        jButton15 = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        pSummaryPanel = new javax.swing.JPanel();
+        lblSubtotalLabel = new javax.swing.JLabel();
+        lblSubtotalValue = new javax.swing.JLabel();
+        lblDiscountLabel = new javax.swing.JLabel();
+        txtDiscountPercent = new javax.swing.JTextField();
+        lblTotalLabel = new javax.swing.JLabel();
+        lblTotalValue = new javax.swing.JLabel();
         pSouth = new javax.swing.JPanel();
+        btnCancel = new javax.swing.JButton();
         btnCheckout = new javax.swing.JButton();
         pTableArea = new javax.swing.JPanel();
         lblTablesTitle = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();  // ScrollPane cho bàn
         pTablesGrid = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -327,6 +353,8 @@ private void setTableColor(JButton btn, int status, boolean selected) {
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
+        pLegend = new javax.swing.JPanel();  // Legend panel thay vì jPanel1
+
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -417,49 +445,84 @@ private void setTableColor(JButton btn, int status, boolean selected) {
 
         pBillArea.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
-        pBillBottom.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        pBillBottom.setLayout(new java.awt.GridLayout(2, 1, 0, 10));
+        pBillBottom.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        pBillBottom.setLayout(new java.awt.BorderLayout(0, 10));
 
-        pActionRow.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 8));
+        // Summary panel with GridBagLayout for better control
+        pSummaryPanel.setLayout(new java.awt.GridBagLayout());
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        gbc.insets = new java.awt.Insets(5, 5, 5, 5);
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
 
-        jLabel3.setText("Món");
-        pActionRow.add(jLabel3);
+        // Tạm tính
+        lblSubtotalLabel.setText("Tạm tính:");
+        lblSubtotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.5;
+        pSummaryPanel.add(lblSubtotalLabel, gbc);
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        pActionRow.add(jComboBox2);
+        lblSubtotalValue.setText("0đ");
+        lblSubtotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        lblSubtotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        gbc.gridx = 1;
+        gbc.weightx = 0.5;
+        gbc.anchor = java.awt.GridBagConstraints.EAST;
+        pSummaryPanel.add(lblSubtotalValue, gbc);
 
-        jLabel4.setText("Số lượng");
-        pActionRow.add(jLabel4);
-        pActionRow.add(jSpinner1);
+        // Giảm giá
+        lblDiscountLabel.setText("Giảm giá (%):");
+        lblDiscountLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        pSummaryPanel.add(lblDiscountLabel, gbc);
 
-        jButton15.setText("Thêm");
-        pActionRow.add(jButton15);
+        txtDiscountPercent.setText("0");
+        txtDiscountPercent.setPreferredSize(new java.awt.Dimension(80, 25));
+        txtDiscountPercent.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        gbc.gridx = 1;
+        gbc.anchor = java.awt.GridBagConstraints.EAST;
+        pSummaryPanel.add(txtDiscountPercent, gbc);
 
-        jLabel5.setText("Tổng tiền");
-        pActionRow.add(jLabel5);
+        // Tổng cộng
+        lblTotalLabel.setText("Tổng cộng:");
+        lblTotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        pSummaryPanel.add(lblTotalLabel, gbc);
 
-        pBillBottom.add(pActionRow);
+        lblTotalValue.setText("0đ");
+        lblTotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+        lblTotalValue.setForeground(new java.awt.Color(52, 152, 219));
+        lblTotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        gbc.gridx = 1;
+        gbc.anchor = java.awt.GridBagConstraints.EAST;
+        pSummaryPanel.add(lblTotalValue, gbc);
+
+        pBillBottom.add(pSummaryPanel, java.awt.BorderLayout.CENTER);
+
+        // Buttons panel
+        pSouth.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
+
+        btnCancel.setText("HỦY");
+        btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btnCancel.setPreferredSize(new java.awt.Dimension(120, 40));
+        btnCancel.setBackground(new java.awt.Color(231, 76, 60));
+        btnCancel.setForeground(java.awt.Color.WHITE);
+        btnCancel.setFocusPainted(false);
+        pSouth.add(btnCancel);
 
         btnCheckout.setText("THANH TOÁN");
+        btnCheckout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btnCheckout.setPreferredSize(new java.awt.Dimension(150, 40));
+        btnCheckout.setBackground(new java.awt.Color(46, 204, 113));
+        btnCheckout.setForeground(java.awt.Color.WHITE);
+        btnCheckout.setFocusPainted(false);
+        pSouth.add(btnCheckout);
 
-        javax.swing.GroupLayout pSouthLayout = new javax.swing.GroupLayout(pSouth);
-        pSouth.setLayout(pSouthLayout);
-        pSouthLayout.setHorizontalGroup(
-            pSouthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pSouthLayout.createSequentialGroup()
-                .addGap(122, 122, 122)
-                .addComponent(btnCheckout)
-                .addContainerGap(147, Short.MAX_VALUE))
-        );
-        pSouthLayout.setVerticalGroup(
-            pSouthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pSouthLayout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addComponent(btnCheckout)
-                .addContainerGap(39, Short.MAX_VALUE))
-        );
-
-        pBillBottom.add(pSouth);
+        pBillBottom.add(pSouth, java.awt.BorderLayout.SOUTH);
 
         pBillArea.add(pBillBottom, java.awt.BorderLayout.PAGE_END);
 
@@ -473,6 +536,7 @@ private void setTableColor(JButton btn, int status, boolean selected) {
         lblTablesTitle.setText("SƠ ĐỒ BÀN ");
         pTableArea.add(lblTablesTitle, java.awt.BorderLayout.PAGE_START);
 
+        // Wrap pTablesGrid in ScrollPane
         pTablesGrid.setLayout(new java.awt.GridLayout(4, 2, 16, 16));
 
         jButton1.setText("jButton1");
@@ -499,7 +563,18 @@ private void setTableColor(JButton btn, int status, boolean selected) {
         jButton8.setText("jButton8");
         pTablesGrid.add(jButton8);
 
-        pTableArea.add(pTablesGrid, java.awt.BorderLayout.CENTER);
+        // Add pTablesGrid to ScrollPane
+        jScrollPane3.setViewportView(pTablesGrid);
+        jScrollPane3.setBorder(null);
+        pTableArea.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        // Create Legend Panel
+        pLegend.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
+        pLegend.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Legend labels will be added in initLogic()
+        
+        pTableArea.add(pLegend, java.awt.BorderLayout.PAGE_END);
 
         jSplitPane1.setLeftComponent(pTableArea);
 
@@ -507,15 +582,16 @@ private void setTableColor(JButton btn, int status, boolean selected) {
     }// </editor-fold>//GEN-END:initComponents
 
 
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAll;
     private javax.swing.JButton btnCake;
+    private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnCheckout;
     private javax.swing.JButton btnCoffee;
     private javax.swing.JButton btnJuice;
     private javax.swing.JButton btnTea;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -523,28 +599,31 @@ private void setTableColor(JButton btn, int status, boolean selected) {
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
-    private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JSpinner jSpinner1;
+    private javax.swing.JScrollPane jScrollPane3;  // ScrollPane cho bàn
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTable jTable1;
+    private javax.swing.JLabel lblDiscountLabel;
+    private javax.swing.JLabel lblSubtotalLabel;
+    private javax.swing.JLabel lblSubtotalValue;
     private javax.swing.JLabel lblTablesTitle;
-    private javax.swing.JPanel pActionRow;
+    private javax.swing.JLabel lblTotalLabel;
+    private javax.swing.JLabel lblTotalValue;
     private javax.swing.JPanel pBillArea;
     private javax.swing.JPanel pBillBottom;
     private javax.swing.JPanel pBillHeader;
     private javax.swing.JPanel pFilterBar;
+    private javax.swing.JPanel pLegend;  // Legend panel
     private javax.swing.JPanel pMenuArea;
     private javax.swing.JPanel pSouth;
+    private javax.swing.JPanel pSummaryPanel;
     private javax.swing.JPanel pTableArea;
     private javax.swing.JPanel pTablesGrid;
+    private javax.swing.JTextField txtDiscountPercent;
     // End of variables declaration//GEN-END:variables
 }
