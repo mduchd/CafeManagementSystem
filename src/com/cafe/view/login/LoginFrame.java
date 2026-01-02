@@ -13,8 +13,57 @@ public class LoginFrame extends javax.swing.JFrame {
     public LoginFrame() {
         initComponents();
         getRootPane().setDefaultButton(btnLogin);
-
+        addLogoToLoginForm();
     }
+    
+    /**
+     * Add coffee logo icon above "Java Coffe" text
+     */
+    private void addLogoToLoginForm() {
+        // Create logo label with image or fallback to coffee icon
+        javax.swing.JLabel lblLogo = new javax.swing.JLabel();
+        
+        // Try to load image from icon folder
+        try {
+            java.net.URL imageUrl = getClass().getResource("/icon/logo.png");
+            if (imageUrl != null) {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imageUrl);
+                // Scale image to 100x100
+                java.awt.Image scaledImage = icon.getImage().getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH);
+                lblLogo.setIcon(new javax.swing.ImageIcon(scaledImage));
+            } else {
+                // Fallback to coffee emoji if image not found
+                lblLogo.setText("☕");
+                lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 80));
+                lblLogo.setForeground(new java.awt.Color(255, 255, 255));
+            }
+        } catch (Exception e) {
+            // Fallback to coffee emoji if error
+            lblLogo.setText("☕");
+            lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 80));
+            lblLogo.setForeground(new java.awt.Color(255, 255, 255));
+        }
+        
+        lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
+        // Update Right panel layout to include logo
+        Right.setLayout(new java.awt.GridBagLayout());
+        java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+        
+        // Logo at top
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new java.awt.Insets(150, 0, 20, 0);
+        Right.add(lblLogo, gbc);
+        
+        // "Java Coffe" text below logo
+        gbc.gridy = 1;
+        gbc.insets = new java.awt.Insets(0, 0, 150, 0);
+        Right.add(jLabel6, gbc);
+    }
+
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -43,12 +92,12 @@ public class LoginFrame extends javax.swing.JFrame {
         jPanel1.setPreferredSize(new java.awt.Dimension(800, 500));
         jPanel1.setLayout(null);
 
-        Right.setBackground(new java.awt.Color(153, 51, 0));
+        Right.setBackground(new java.awt.Color(30, 58, 95));
         Right.setPreferredSize(new java.awt.Dimension(400, 500));
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel6.setText("Java Coffe");
+        jLabel6.setText("Java Coffee");
 
         javax.swing.GroupLayout RightLayout = new javax.swing.GroupLayout(Right);
         Right.setLayout(RightLayout);
@@ -74,13 +123,13 @@ public class LoginFrame extends javax.swing.JFrame {
         jPanel2.setMinimumSize(new java.awt.Dimension(400, 500));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(153, 51, 0));
+        jLabel1.setForeground(new java.awt.Color(30, 58, 95));
         jLabel1.setText("Đăng nhập");
 
         jLabel2.setBackground(new java.awt.Color(102, 102, 102));
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(102, 102, 102));
-        jLabel2.setText("Email");
+        jLabel2.setText("Tài khoản");
 
         txtUsername.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         txtUsername.setForeground(new java.awt.Color(102, 102, 102));
@@ -88,12 +137,12 @@ public class LoginFrame extends javax.swing.JFrame {
         jLabel3.setBackground(new java.awt.Color(102, 102, 102));
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(102, 102, 102));
-        jLabel3.setText("Password");
+        jLabel3.setText("Mật khẩu");
 
-        btnLogin.setBackground(new java.awt.Color(153, 51, 0));
+        btnLogin.setBackground(new java.awt.Color(30, 58, 95));
         btnLogin.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         btnLogin.setForeground(new java.awt.Color(255, 255, 255));
-        btnLogin.setText("Login");
+        btnLogin.setText("Đăng nhập");
         btnLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLoginActionPerformed(evt);
@@ -109,7 +158,7 @@ public class LoginFrame extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(70, 70, 70)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(jLabel2)
                                 .addComponent(txtUsername)
