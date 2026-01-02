@@ -5,6 +5,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
+import com.cafe.model.Product;
+import com.cafe.model.Order;
+import com.cafe.model.OrderDetail;
+import com.cafe.service.OrderService;
+import com.cafe.service.UserSession;
+import java.text.SimpleDateFormat;
+
+
 
 public class SalesPanel extends javax.swing.JPanel {
 
@@ -14,6 +23,9 @@ public class SalesPanel extends javax.swing.JPanel {
     private final Map<Integer, Integer> tableStatus = new HashMap<>(); // 0 trống, 1 có khách
     private int selectedTableNo = 1;
     private final com.cafe.service.ProductService productService = new com.cafe.service.ProductService();
+    private final OrderService orderService = new OrderService();
+    private JPanel pMenuItems;  // Panel chứa menu items
+
     
     public SalesPanel() {
         initComponents();
@@ -120,6 +132,7 @@ public class SalesPanel extends javax.swing.JPanel {
     });
     
     btnCancel.addActionListener(e -> clearBill());
+    btnCheckout.addActionListener(e -> handleCheckout());
     
     // 9) Setup Legend Panel (Chú thích màu sắc)
     // Sử dụng HTML để hiển thị hình tròn màu đúng
@@ -143,7 +156,70 @@ public class SalesPanel extends javax.swing.JPanel {
     ));
     lblSelected.setFont(new Font("Segoe UI", Font.PLAIN, 12));
     pLegend.add(lblSelected);
+    
+    // 10) Setup menu items panel (dùng pMenuArea có sẵn)
+    // pMenuArea đã có jScrollPane1 bên trong (từ NetBeans design)
+    // Tạo panel chứa menu items và đặt vào jScrollPane1
+    pMenuItems = new JPanel();
+    pMenuItems.setLayout(new GridLayout(0, 3, 10, 10));  // 3 columns, auto rows
+    pMenuItems.setBackground(Color.WHITE);
+    
+    // Tìm jScrollPane1 và set viewport
+    // jScrollPane1 đã được add vào pMenuArea ở initComponents()
+    for (java.awt.Component comp : pMenuArea.getComponents()) {
+        if (comp instanceof JScrollPane) {
+            ((JScrollPane) comp).setViewportView(pMenuItems);
+            break;
+        }
+    }
+    
+    // Load initial menu from database
+    refreshMenu();
 }
+
+/**
+ * Refresh menu items from database
+ * Called when switching back to SalesPanel or when products are updated
+ */
+public void refreshMenu() {
+    if (pMenuItems != null) {
+        pMenuItems.removeAll();
+        
+        // Load products from database
+        List<Product> products = productService.getAllProducts();
+        System.out.println("DEBUG: Loaded " + products.size() + " products from database");
+        
+        // Add menu item buttons for active products
+        int activeCount = 0;
+        for (Product product : products) {
+            System.out.println("DEBUG: Product - Name: " + product.getName() + 
+                             ", Price: " + product.getPrice() + 
+                             ", Status: " + product.getStatus() + 
+                             ", Category: " + product.getCategory());
+            
+            // Check if product is active (DangBan or Đang bán)
+            String status = product.getStatus();
+            if ("DangBan".equals(status) || "Đang bán".equals(status) || "1".equals(status)) {
+                JButton btn = createMenuItemButton(
+                    product.getName(),
+                    String.format("%.0fđ", product.getPrice()),  // %.0f cho Double, không số thập phân
+                    product.getCategory()
+                );
+                pMenuItems.add(btn);
+                activeCount++;
+            }
+        }
+        
+        System.out.println("DEBUG: Added " + activeCount + " active products to menu");
+        
+        // Refresh UI
+        pMenuItems.revalidate();
+        pMenuItems.repaint();
+    } else {
+        System.out.println("DEBUG: pMenuItems is NULL!");
+    }
+}
+
 
 
 
@@ -306,6 +382,166 @@ private void setTableColor(JButton btn, int status, boolean selected) {
     else if (status == 1) btn.setBackground(COLOR_BUSY);
     else btn.setBackground(COLOR_EMPTY);
     btn.setForeground(Color.WHITE);
+}
+
+/**
+ * Xử lý thanh toán
+ */
+private void handleCheckout() {
+    // 1. Validate
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    if (model.getRowCount() == 0) {
+        JOptionPane.showMessageDialog(this, "Chưa có sản phẩm nào trong hóa đơn!");
+        return;
+    }
+    
+    // 2. Confirm
+    int confirm = JOptionPane.showConfirmDialog(this, 
+        "Xác nhận thanh toán cho " + jLabel1.getText() + "?",
+        "Xác nhận thanh toán",
+        JOptionPane.YES_NO_OPTION);
+    
+    if (confirm != JOptionPane.YES_OPTION) {
+        return;
+    }
+    
+    // 3. Tạo Order object
+    Order order = new Order();
+    order.setTotalAmount(parseCurrency(lblTotalValue.getText()));
+    order.setCreatedBy(UserSession.getCurrentUser().getUsername());
+    
+    // 4. Tạo OrderDetails từ bill table
+    List<OrderDetail> details = new ArrayList<>();
+    for (int i = 0; i < model.getRowCount(); i++) {
+        String productName = model.getValueAt(i, 0).toString();
+        int quantity = Integer.parseInt(model.getValueAt(i, 1).toString());
+        double unitPrice = parseCurrency(model.getValueAt(i, 2).toString());
+        double totalPrice = parseCurrency(model.getValueAt(i, 3).toString());
+        
+        // Get product ID from name
+        int productId = productService.getProductIdByName(productName);
+        
+        if (productId == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Không tìm thấy sản phẩm: " + productName, 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        OrderDetail detail = new OrderDetail();
+        detail.setProductId(productId);
+        detail.setProductName(productName);
+        detail.setQuantity(quantity);
+        detail.setUnitPrice(unitPrice);
+        detail.setTotalPrice(totalPrice);
+        
+        details.add(detail);
+    }
+    order.setDetails(details);
+    
+    // 5. Lưu vào database
+    int orderId = orderService.createOrder(order);
+    
+    if (orderId > 0) {
+        // 6. In hóa đơn
+        printInvoice(orderId, order);
+        
+        // 7. Cập nhật trạng thái bàn về trống
+        tableStatus.put(selectedTableNo, 0);
+        refreshAllTableColors();
+        
+        // 8. Clear bill
+        clearBill();
+        
+        JOptionPane.showMessageDialog(this, 
+            "Thanh toán thành công!\nMã hóa đơn: " + orderId);
+    } else {
+        JOptionPane.showMessageDialog(this, 
+            "Lỗi khi lưu hóa đơn!", 
+            "Lỗi", 
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+/**
+ * Parse currency string to double
+ */
+private double parseCurrency(String currencyStr) {
+    return Double.parseDouble(currencyStr.replace("đ", "").replace(",", "").trim());
+}
+
+/**
+ * In hóa đơn
+ */
+private void printInvoice(int orderId, Order order) {
+    // Tạo dialog hiển thị hóa đơn
+    JDialog invoiceDialog = new JDialog();
+    invoiceDialog.setTitle("Hóa đơn #" + orderId);
+    invoiceDialog.setSize(400, 600);
+    invoiceDialog.setLocationRelativeTo(this);
+    
+    // Tạo nội dung hóa đơn
+    StringBuilder invoice = new StringBuilder();
+    invoice.append("===========================================\n");
+    invoice.append("           QUÁN CAFE JAVA\n");
+    invoice.append("       Địa chỉ: 123 Đường Nguyễn Trãi\n");
+    invoice.append("         ĐT: 0123456789\n");
+    invoice.append("===========================================\n\n");
+    invoice.append("Hóa đơn số: ").append(orderId).append("\n");
+    invoice.append("Ngày: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(order.getCreatedDate())).append("\n");
+    invoice.append(jLabel1.getText()).append(" - ").append(jLabel2.getText()).append("\n");
+    invoice.append("Nhân viên: ").append(UserSession.getCurrentUser().getFullname()).append("\n");
+    invoice.append("-------------------------------------------\n\n");
+    
+    // Chi tiết sản phẩm
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    for (int i = 0; i < model.getRowCount(); i++) {
+        String name = model.getValueAt(i, 0).toString();
+        String qty = model.getValueAt(i, 1).toString();
+        String total = model.getValueAt(i, 3).toString();
+        
+        invoice.append(String.format("%-20s x%2s  %10s\n", name, qty, total));
+    }
+    
+    invoice.append("\n-------------------------------------------\n");
+    invoice.append(String.format("%-20s %15s\n", lblSubtotalLabel.getText(), lblSubtotalValue.getText()));
+    invoice.append(String.format("%-20s %15s\n", lblDiscountLabel.getText(), txtDiscountPercent.getText() + "%"));
+    invoice.append(String.format("%-20s %15s\n", lblTotalLabel.getText(), lblTotalValue.getText()));
+    invoice.append("-------------------------------------------\n\n");
+    invoice.append("     Cảm ơn quý khách! Hẹn gặp lại!\n");
+    invoice.append("===========================================\n");
+    
+    // Hiển thị trong JTextPane với căn giữa
+    JTextPane textPane = new JTextPane();
+    textPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    textPane.setEditable(false);
+    textPane.setText(invoice.toString());
+    
+    // Căn giữa toàn bộ text
+    javax.swing.text.StyledDocument doc = textPane.getStyledDocument();
+    javax.swing.text.SimpleAttributeSet center = new javax.swing.text.SimpleAttributeSet();
+    javax.swing.text.StyleConstants.setAlignment(center, javax.swing.text.StyleConstants.ALIGN_CENTER);
+    doc.setParagraphAttributes(0, doc.getLength(), center, false);
+    
+    JScrollPane scrollPane = new JScrollPane(textPane);
+    invoiceDialog.add(scrollPane, BorderLayout.CENTER);
+    
+    // Nút in
+    JButton btnPrint = new JButton("In");
+    btnPrint.addActionListener(e -> {
+        try {
+            textPane.print();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(invoiceDialog, "Lỗi khi in: " + ex.getMessage());
+        }
+    });
+    
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.add(btnPrint);
+    invoiceDialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+    invoiceDialog.setVisible(true);
 }
   
 
@@ -537,7 +773,7 @@ private void setTableColor(JButton btn, int status, boolean selected) {
         pTableArea.add(lblTablesTitle, java.awt.BorderLayout.PAGE_START);
 
         // Wrap pTablesGrid in ScrollPane
-        pTablesGrid.setLayout(new java.awt.GridLayout(4, 2, 16, 16));
+        pTablesGrid.setLayout(new java.awt.GridLayout(0, 2, 16, 16));
 
         jButton1.setText("jButton1");
         pTablesGrid.add(jButton1);

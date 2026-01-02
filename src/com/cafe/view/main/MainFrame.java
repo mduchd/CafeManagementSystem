@@ -2,6 +2,7 @@
 package com.cafe.view.main;
 
 import com.cafe.view.sales.SalesPanel;
+import com.cafe.view.product.ProductPanel;
 import com.cafe.service.UserSession;
 /**
  *
@@ -43,7 +44,7 @@ public class MainFrame extends javax.swing.JFrame {
         // Add panels to content area
         pContent.add(salesPanel, "SALES");
         pContent.add(createPlaceholderPanel("Quản lý Bàn"), "TABLES");
-        pContent.add(createPlaceholderPanel("Quản lý Sản phẩm"), "PRODUCTS");
+        pContent.add(new ProductPanel(), "PRODUCTS");  // ← NỐI PRODUCTPANEL
         pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
         pContent.add(createPlaceholderPanel("Thống kê"), "STATS");
         pContent.add(createPlaceholderPanel("Quản lý Nhân viên"), "EMPLOYEES");
@@ -256,6 +257,12 @@ public class MainFrame extends javax.swing.JFrame {
         // Click handler
         btn.addActionListener(e -> {
             setActiveButton(btn);
+            
+            // Refresh SalesPanel menu when switching to SALES
+            if (cardName.equals("SALES")) {
+                salesPanel.refreshMenu();
+            }
+            
             cardLayout.show(pContent, cardName);
         });
     }

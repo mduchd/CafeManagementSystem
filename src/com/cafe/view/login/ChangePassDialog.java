@@ -21,6 +21,8 @@ public class ChangePassDialog extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         addLogoToChangePassDialog();
+        jButton1.addActionListener(e -> dispose());
+        
     }
     
     /**

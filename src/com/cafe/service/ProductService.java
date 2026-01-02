@@ -53,4 +53,12 @@ public class ProductService {
         if (p.getPrice() <= 0) return false;
         return true;
     }
+    
+    /**
+     * Lấy ID sản phẩm theo tên
+     * Dùng cho việc tạo hóa đơn từ SalesPanel
+     */
+    public int getProductIdByName(String name) {
+        return productDAO.getProductIdByName(name);
+    }
 }
