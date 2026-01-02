@@ -12,10 +12,10 @@ public class AuthDAO {
 
     public User login(String username, String password) {
         String sql = "SELECT Username, Role, TenHienThi FROM taikhoan WHERE Username = ? AND PASSWORD = ?";
-        
+
         // SỬA LỖI 1: Đưa cả conn và stmt vào trong ngoặc tròn của try
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
             stmt.setString(2, password);
@@ -23,9 +23,9 @@ public class AuthDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     User u = new User();
-                    u.setUsername(rs.getString("Username"));
+                    u.setUserName(rs.getString("Username"));
                     u.setRole(rs.getString("Role")); // Đảm bảo cột Role trong DB khớp tên
-                    u.setFullname(rs.getString("TenHienThi"));
+                    u.setFullName(rs.getString("TenHienThi"));
                     return u;
                 }
             }
@@ -34,15 +34,16 @@ public class AuthDAO {
         }
         return null;
     }
-    
+
     public String getPasswordByUserName(String username) {
         String sql = "SELECT Password FROM taikhoan WHERE Username = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getString("Password");
+                if (rs.next())
+                    return rs.getString("Password");
             }
 
         } catch (Exception e) {
@@ -51,14 +52,12 @@ public class AuthDAO {
         return null;
     }
 
-    
-
     // Update mật khẩu
     public boolean updatePassword(String username, String newPassword) {
         String sql = "UPDATE taikhoan SET Password = ? WHERE Username = ?";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, newPassword);
             stmt.setString(2, username);

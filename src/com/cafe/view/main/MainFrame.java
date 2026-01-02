@@ -2,10 +2,7 @@
 package com.cafe.view.main;
 
 import com.cafe.view.sales.SalesPanel;
-import com.cafe.view.table.TablePanel;
-import com.cafe.model.User;
 import com.cafe.service.UserSession;
-import javax.swing.*;
 
 /**
  *
@@ -23,6 +20,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private javax.swing.JButton activeButton = null;
     private java.awt.CardLayout cardLayout;
+    private SalesPanel salesPanel; // Store SalesPanel instance to reuse
 
     /**
      * Creates new form MainFrame
@@ -41,9 +39,12 @@ public class MainFrame extends javax.swing.JFrame {
         // Setup CardLayout
         cardLayout = (java.awt.CardLayout) pContent.getLayout();
 
+        // Create and store SalesPanel instance (will be reused for STAFF)
+        salesPanel = new SalesPanel();
+
         // Add panels to content area
-        pContent.add(new SalesPanel(), "SALES");
-        pContent.add(new TablePanel(), "TABLES");
+        pContent.add(salesPanel, "SALES");
+        pContent.add(new com.cafe.view.table.TablePanel(), "TABLES");
         pContent.add(createPlaceholderPanel("Quản lý Sản phẩm"), "PRODUCTS");
         pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
         pContent.add(createPlaceholderPanel("Thống kê"), "STATS");
@@ -74,7 +75,7 @@ public class MainFrame extends javax.swing.JFrame {
         applyRolePermissions();
 
         // Set initial active button (only if manager)
-        if (UserSession.getInstance().isManager()) {
+        if (UserSession.isManager()) {
             setActiveButton(btnSales);
         }
         cardLayout.show(pContent, "SALES");
@@ -96,12 +97,35 @@ public class MainFrame extends javax.swing.JFrame {
         lblRole.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
         // Update role label based on current user
-        UserSession session = UserSession.getInstance();
-        String roleText = session.getCurrentRole().getDisplayName();
-        String userName = session.getCurrentUserName();
+        com.cafe.model.User user = UserSession.getCurrentUser();
+        String userName = user != null ? (user.getFullName() != null ? user.getFullName() : user.getUserName())
+                : "Guest";
+        String roleText = UserSession.isManager() ? "Quản lý" : "Nhân viên";
         lblRole.setText("<html><center>" + userName + "<br><small>" + roleText + "</small></center></html>");
 
         pRoleIndicator.add(lblRole, java.awt.BorderLayout.CENTER);
+
+        // Button panel (for Change Password and Logout buttons)
+        javax.swing.JPanel pButtons = new javax.swing.JPanel();
+        pButtons.setBackground(SIDEBAR_BG);
+        pButtons.setLayout(new java.awt.GridLayout(2, 1, 0, 5));
+
+        // Change Password button (only for Manager/Admin)
+        if (UserSession.isManager()) {
+            javax.swing.JButton btnChangePass = new javax.swing.JButton("Đổi mật khẩu");
+            btnChangePass.setForeground(java.awt.Color.WHITE);
+            btnChangePass.setBackground(new java.awt.Color(52, 152, 219)); // Blue color
+            btnChangePass.setFocusPainted(false);
+            btnChangePass.setBorderPainted(false);
+            btnChangePass.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
+            btnChangePass.addActionListener(e -> {
+                // Open ChangePassDialog
+                com.cafe.view.login.ChangePassDialog dialog = new com.cafe.view.login.ChangePassDialog(this, true);
+                dialog.setLocationRelativeTo(this);
+                dialog.setVisible(true);
+            });
+            pButtons.add(btnChangePass);
+        }
 
         // Logout button
         javax.swing.JButton btnLogout = new javax.swing.JButton("Đăng xuất");
@@ -111,12 +135,13 @@ public class MainFrame extends javax.swing.JFrame {
         btnLogout.setBorderPainted(false);
         btnLogout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
         btnLogout.addActionListener(e -> {
-            UserSession.getInstance().logout();
+            UserSession.clear();
             dispose();
             // TODO: Show login screen
         });
+        pButtons.add(btnLogout);
 
-        pRoleIndicator.add(btnLogout, java.awt.BorderLayout.SOUTH);
+        pRoleIndicator.add(pButtons, java.awt.BorderLayout.SOUTH);
 
         // Add to sidebar
         pSidebar.add(pRoleIndicator, java.awt.BorderLayout.PAGE_END);
@@ -126,9 +151,7 @@ public class MainFrame extends javax.swing.JFrame {
      * Apply role-based permissions to menu items
      */
     private void applyRolePermissions() {
-        UserSession session = UserSession.getInstance();
-
-        if (session.isStaff()) {
+        if (UserSession.isStaff()) {
             // STAFF: Hide sidebar completely, show only SalesPanel
             pSidebar.setVisible(false);
 
@@ -137,7 +160,7 @@ public class MainFrame extends javax.swing.JFrame {
 
             // Add logout button for STAFF in top-right corner
             addStaffLogoutButton();
-        } else if (session.isManager()) {
+        } else if (UserSession.isManager()) {
             // MANAGER: Show sidebar with all menus
             pSidebar.setVisible(true);
 
@@ -153,16 +176,20 @@ public class MainFrame extends javax.swing.JFrame {
 
     /**
      * Add logout button for STAFF users in top-right corner
+     * This method wraps the SalesPanel with a logout button at the top
      */
     private void addStaffLogoutButton() {
         // Create logout panel
         javax.swing.JPanel pStaffLogout = new javax.swing.JPanel();
         pStaffLogout.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 10));
-        pStaffLogout.setOpaque(false);
+        pStaffLogout.setBackground(java.awt.Color.WHITE);
 
         // User info label
         javax.swing.JLabel lblUserInfo = new javax.swing.JLabel();
-        lblUserInfo.setText(UserSession.getInstance().getCurrentUserName() + " (Nhân viên)");
+        com.cafe.model.User user = UserSession.getCurrentUser();
+        String userName = user != null ? (user.getFullName() != null ? user.getFullName() : user.getUserName())
+                : "Guest";
+        lblUserInfo.setText(userName + " (Nhân viên)");
         lblUserInfo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
         pStaffLogout.add(lblUserInfo);
 
@@ -175,7 +202,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnStaffLogout.setBorderPainted(false);
         btnStaffLogout.setPreferredSize(new java.awt.Dimension(90, 30));
         btnStaffLogout.addActionListener(e -> {
-            UserSession.getInstance().logout();
+            UserSession.clear();
             dispose();
             // TODO: Show login screen
             javax.swing.JOptionPane.showMessageDialog(null,
@@ -185,8 +212,19 @@ public class MainFrame extends javax.swing.JFrame {
         });
         pStaffLogout.add(btnStaffLogout);
 
-        // Add to top of content area
-        pContent.add(pStaffLogout, java.awt.BorderLayout.PAGE_START);
+        // Create a wrapper panel with BorderLayout to hold both logout button and
+        // SalesPanel
+        // Note: Create NEW SalesPanel for STAFF to avoid rendering issues when moving
+        // between layouts
+        javax.swing.JPanel wrapperPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        wrapperPanel.add(pStaffLogout, java.awt.BorderLayout.PAGE_START);
+        wrapperPanel.add(new SalesPanel(), java.awt.BorderLayout.CENTER);
+
+        // Replace the SALES card with the wrapper panel
+        pContent.removeAll();
+        pContent.add(wrapperPanel, "SALES");
+        pContent.revalidate();
+        pContent.repaint();
     }
 
     private void setupMenuButton(javax.swing.JButton btn, String text, String cardName) {
@@ -330,26 +368,12 @@ public class MainFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
-        // (optional) ">
-        /*
-         * If Nimbus (introduced in Java SE 6) is not available, stay with the default
-         * look and feel.
-         * For details see
-         * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
+        /* Set Metal look and feel - flat colors, no gradients */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        // </editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new MainFrame().setVisible(true));
