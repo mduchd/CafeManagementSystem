@@ -45,11 +45,12 @@ public class MainFrame extends javax.swing.JFrame {
 
         // Add panels to content area
         pContent.add(salesPanel, "SALES");
-        pContent.add(new com.cafe.view.table.TablePanel(), "TABLES");  // TablePanel from sonvu
-        pContent.add(new ProductPanel(), "PRODUCTS");  // ProductPanel from HEAD
+        pContent.add(new com.cafe.view.table.TablePanel(), "TABLES"); // TablePanel from sonvu
+        pContent.add(new ProductPanel(), "PRODUCTS"); // ProductPanel from HEAD
         pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
         pContent.add(createPlaceholderPanel("Thống kê"), "STATS");
         pContent.add(new com.cafe.view.employee.EmployeePanel(), "EMPLOYEES");
+        pContent.add(new com.cafe.view.account.AccountPanel(), "ACCOUNTS");
 
         // Style sidebar
         pSidebar.setBackground(SIDEBAR_BG);
@@ -67,6 +68,7 @@ public class MainFrame extends javax.swing.JFrame {
         setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
         setupMenuButton(btnStats, "Thống kê", "STATS");
         setupMenuButton(btnEmployee, "Nhân viên", "EMPLOYEES");
+        setupMenuButton(btnAccount, "Tài khoản", "ACCOUNTS");
 
         // Setup role indicator panel at bottom of sidebar
         setupRoleIndicatorPanel();
@@ -106,27 +108,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         pRoleIndicator.add(lblRole, java.awt.BorderLayout.CENTER);
 
-        // Button panel (for Change Password and Logout buttons)
+        // Button panel (for Logout button)
         javax.swing.JPanel pButtons = new javax.swing.JPanel();
         pButtons.setBackground(SIDEBAR_BG);
-        pButtons.setLayout(new java.awt.GridLayout(2, 1, 0, 5));
-
-        // Change Password button (only for Manager/Admin)
-        if (UserSession.isManager()) {
-            javax.swing.JButton btnChangePass = new javax.swing.JButton("Đổi mật khẩu");
-            btnChangePass.setForeground(java.awt.Color.WHITE);
-            btnChangePass.setBackground(new java.awt.Color(52, 152, 219)); // Blue color
-            btnChangePass.setFocusPainted(false);
-            btnChangePass.setBorderPainted(false);
-            btnChangePass.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
-            btnChangePass.addActionListener(e -> {
-                // Open ChangePassDialog
-                com.cafe.view.login.ChangePassDialog dialog = new com.cafe.view.login.ChangePassDialog(this, true);
-                dialog.setLocationRelativeTo(this);
-                dialog.setVisible(true);
-            });
-            pButtons.add(btnChangePass);
-        }
+        pButtons.setLayout(new java.awt.GridLayout(1, 1, 0, 5));
 
         // Logout button
         javax.swing.JButton btnLogout = new javax.swing.JButton("Đăng xuất");
@@ -172,6 +157,7 @@ public class MainFrame extends javax.swing.JFrame {
             btnWarehouse.setVisible(true);
             btnStats.setVisible(true);
             btnEmployee.setVisible(true);
+            btnAccount.setVisible(true);
         }
     }
 
@@ -262,12 +248,12 @@ public class MainFrame extends javax.swing.JFrame {
         // Click handler
         btn.addActionListener(e -> {
             setActiveButton(btn);
-            
+
             // Refresh SalesPanel menu when switching to SALES
             if (cardName.equals("SALES")) {
                 salesPanel.refreshMenu();
             }
-            
+
             cardLayout.show(pContent, cardName);
         });
     }
@@ -312,6 +298,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnWarehouse = new javax.swing.JButton();
         btnStats = new javax.swing.JButton();
         btnEmployee = new javax.swing.JButton();
+        btnAccount = new javax.swing.JButton();
         pContent = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -360,6 +347,9 @@ public class MainFrame extends javax.swing.JFrame {
         btnEmployee.setText("Nhân viên");
         pMenu.add(btnEmployee);
 
+        btnAccount.setText("Tài khoản");
+        pMenu.add(btnAccount);
+
         pSidebar.add(pMenu, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(pSidebar, java.awt.BorderLayout.LINE_START);
@@ -387,6 +377,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAccount;
     private javax.swing.JButton btnEmployee;
     private javax.swing.JButton btnProduct;
     private javax.swing.JButton btnSales;
