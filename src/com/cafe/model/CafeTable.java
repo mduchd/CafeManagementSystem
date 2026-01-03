@@ -11,8 +11,14 @@ public class CafeTable {
     public CafeTable() {
     }
 
-    // Full constructor
+    // Full constructor with validation
     public CafeTable(int id, String name, String status, int capacity, String location) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Table name cannot be null or empty");
+        }
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than 0");
+        }
         this.id = id;
         this.name = name;
         this.status = status;
@@ -34,6 +40,9 @@ public class CafeTable {
     }
 
     public void setName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Table name cannot be null or empty");
+        }
         this.name = name;
     }
 
@@ -50,6 +59,9 @@ public class CafeTable {
     }
 
     public void setCapacity(int capacity) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than 0");
+        }
         this.capacity = capacity;
     }
 

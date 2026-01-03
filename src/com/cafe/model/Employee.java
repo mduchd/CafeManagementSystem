@@ -18,10 +18,16 @@ public class Employee {
     public Employee() {
     }
 
-    // Full constructor
+    // Full constructor with validation
     public Employee(int id, String fullName, LocalDate dateOfBirth, String gender,
             String phoneNumber, String email, String address,
             LocalDate startedDate, double salary, String position) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Full name cannot be null or empty");
+        }
+        if (salary < 0) {
+            throw new IllegalArgumentException("Salary cannot be negative");
+        }
         this.id = id;
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
