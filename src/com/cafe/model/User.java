@@ -1,28 +1,65 @@
-
 package com.cafe.model;
 
 public class User {
-    private String username;
-    private String password; 
-    private String role; // admin or employee
-    private String fullname;
-    
+    private int id;
+    private int employeeId;
+    private String userName;
+    private String passWord;
+    private String role; // admin hoặc employee
+    private String fullName;
+
     public User() {
     }
 
-    public User(String username, String password, String role, String fullname) {
-        this.username = username;
-        this.password = password;
+    // Constructor cho login/session (không cần id, employeeId)
+    public User(String userName, String passWord, String role, String fullName) {
+        this.userName = userName;
+        this.passWord = passWord;
         this.role = role;
-        this.fullname = fullname;
+        this.fullName = fullName;
     }
 
-    public String getUsername() {
-        return username;
+    // Constructor đầy đủ (từ database)
+    public User(int id, int employeeId, String userName, String passWord, String role, String fullName) {
+        this.id = id;
+        this.employeeId = employeeId;
+        this.userName = userName;
+        this.passWord = passWord;
+        this.role = role;
+        this.fullName = fullName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(int employeeId) {
+        this.employeeId = employeeId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPassword() {
+        return passWord;
+    }
+
+    public void setPassword(String password) {
+        this.passWord = password;
     }
 
     public String getRole() {
@@ -33,19 +70,22 @@ public class User {
         this.role = role;
     }
 
-    public String getFullname() {
-        return fullname;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", employeeId=" + employeeId +
+                ", userName='" + userName + '\'' +
+                ", role='" + role + '\'' +
+                ", fullName='" + fullName + '\'' +
+                '}';
     }
 }

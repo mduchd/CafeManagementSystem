@@ -1,555 +1,579 @@
 
 package com.cafe.view.sales;
+
+// === ALL IMPORTS (merged from both branches) ===
+import com.cafe.model.CafeTable;
+import com.cafe.model.Product;
+import com.cafe.model.Order;
+import com.cafe.model.OrderDetail;
+import com.cafe.service.CafeTableService;
+import com.cafe.service.OrderService;
+import com.cafe.service.ProductService;
+import com.cafe.service.UserSession;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import com.cafe.model.Product;
-import com.cafe.model.Order;
-import com.cafe.model.OrderDetail;
-import com.cafe.service.OrderService;
-import com.cafe.service.UserSession;
 import java.text.SimpleDateFormat;
 
-
-
+// Sales Panel - Point of Sale (POS) interface for cafe orders
 public class SalesPanel extends javax.swing.JPanel {
 
-    private static final Color COLOR_EMPTY = new Color(46, 204, 113);     // xanh: trống
-    private static final Color COLOR_BUSY = new Color(231, 76, 60);       // đỏ: có khách
-    private static final Color COLOR_SELECTED = new Color(52, 152, 219);  // xanh dương: đang chọn
-    private final Map<Integer, Integer> tableStatus = new HashMap<>(); // 0 trống, 1 có khách
-    private int selectedTableNo = 1;
-    private final com.cafe.service.ProductService productService = new com.cafe.service.ProductService();
-    private final OrderService orderService = new OrderService();
-    private JPanel pMenuItems;  // Panel chứa menu items
+    // === COLOR CONSTANTS (unified naming) ===
+    private static final Color COLOR_AVAILABLE = new Color(46, 204, 113);  // Green: available/empty
+    private static final Color COLOR_IN_USE = new Color(231, 76, 60);      // Red: in use/busy
+    private static final Color COLOR_RESERVED = new Color(241, 196, 15);   // Yellow: reserved
+    private static final Color COLOR_SELECTED = new Color(52, 152, 219);   // Blue: selected
 
-    
+    // === SERVICES (merged) ===
+    private final CafeTableService tableService = new CafeTableService();
+    private final ProductService productService = new ProductService();
+    private final OrderService orderService = new OrderService();
+
+    // === TABLE MANAGEMENT (from sonvu branch) ===
+    private List<CafeTable> tableList = new ArrayList<>();
+    private CafeTable selectedTable = null;
+    private List<JButton> tableButtons = new ArrayList<>();
+
+    // === MENU PANEL (from HEAD) ===
+    private JPanel pMenuItems;
+
+    // Constructor
     public SalesPanel() {
         initComponents();
         initLogic();
     }
-    
+
     private void initLogic() {
-    // 1) Setup table buttons with custom styling
-    JButton[] tableBtns = { jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton7, jButton8 };
+        // 1) Load tables from database and setup dynamic table grid
+        loadTablesFromDatabase();
 
-    for (int i = 0; i < tableBtns.length; i++) {
-        int tableNo = i + 1;
-        JButton b = tableBtns[i];
+        // 1.1) Setup refresh button for table diagram
+        setupRefreshButton();
 
-        // Set text
-        b.setText("Bàn " + tableNo);
-        
-        // Set style
-        b.setFocusPainted(false);
-        b.setOpaque(true);
-        b.setContentAreaFilled(true);
-        b.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-        b.setForeground(java.awt.Color.WHITE);
+        // 2) Customize filter buttons
+        btnAll.setText("Tất cả");
+        btnCoffee.setText("Cà phê");
+        btnTea.setText("Trà");
+        btnJuice.setText("Nước");
+        btnCake.setText("Bánh");
 
-        // Initialize table status (0 = empty, 1 = busy)
-        tableStatus.put(tableNo, 0);
-        
-        // Set initial color
-        setTableColor(b, 0, tableNo == selectedTableNo);
+        // 3) Customize bill header labels
+        jLabel1.setText("Chưa chọn bàn");
+        jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
 
-        // Add click handler
-        b.addActionListener(e -> selectTable(tableNo));
-    }
+        jLabel2.setText("Dùng tại bàn");
+        jLabel2.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
 
-    // Demo: Table 2 is busy
-    tableStatus.put(2, 1);
-    refreshAllTableColors();
-    
-    // 2) Customize filter buttons
-    btnAll.setText("Tất cả");
-    btnCoffee.setText("Cà phê");
-    btnTea.setText("Trà");
-    btnJuice.setText("Nước");
-    btnCake.setText("Bánh");
-    
-    // 3) Customize bill header labels
-    jLabel1.setText("Bàn 01");
-    jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-    
-    jLabel2.setText("Dùng tại bàn");
-    jLabel2.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
-    
-    // 4) Setup bill table model
-    jTable1.setModel(new javax.swing.table.DefaultTableModel(
-        new Object[][]{},
-        new String[]{"Món", "SL", "Đơn giá", "Thành tiền"}
-    ));
-    
-    // 5) Customize summary labels
-    lblSubtotalLabel.setText("Tạm tính:");
-    lblSubtotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
-    
-    lblSubtotalValue.setText("0đ");
-    lblSubtotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-    lblSubtotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-    
-    lblDiscountLabel.setText("Giảm giá (%):");
-    lblDiscountLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
-    
-    lblTotalLabel.setText("Tổng cộng:");
-    lblTotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
-    
-    lblTotalValue.setText("0đ");
-    lblTotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
-    lblTotalValue.setForeground(new java.awt.Color(52, 152, 219)); // Blue
-    lblTotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-    
-    // 6) Customize action buttons
-    btnCancel.setText("HỦY");
-    btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-    btnCancel.setBackground(new java.awt.Color(231, 76, 60)); // Red
-    btnCancel.setForeground(java.awt.Color.WHITE);
-    btnCancel.setFocusPainted(false);
-    btnCancel.setPreferredSize(new java.awt.Dimension(120, 40));
-    
-    btnCheckout.setText("THANH TOÁN");
-    btnCheckout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-    btnCheckout.setBackground(new java.awt.Color(46, 204, 113)); // Green
-    btnCheckout.setForeground(java.awt.Color.WHITE);
-    btnCheckout.setFocusPainted(false);
-    btnCheckout.setPreferredSize(new java.awt.Dimension(150, 40));
-    
-    // 7) Customize discount field
-    txtDiscountPercent.setText("0");
-    txtDiscountPercent.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    txtDiscountPercent.setPreferredSize(new java.awt.Dimension(80, 25));
-    
-    // 8) Setup event handlers
-    txtDiscountPercent.addActionListener(e -> updateTotalAmount());
-    txtDiscountPercent.addFocusListener(new java.awt.event.FocusAdapter() {
-        public void focusLost(java.awt.event.FocusEvent evt) {
-            updateTotalAmount();
-        }
-    });
-    
-    btnCancel.addActionListener(e -> clearBill());
-    btnCheckout.addActionListener(e -> handleCheckout());
-    
-    // 9) Setup Legend Panel (Chú thích màu sắc)
-    // Sử dụng HTML để hiển thị hình tròn màu đúng
-    JLabel lblEmpty = new JLabel(String.format(
-        "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Trống</html>",
-        COLOR_EMPTY.getRed(), COLOR_EMPTY.getGreen(), COLOR_EMPTY.getBlue()
-    ));
-    lblEmpty.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-    pLegend.add(lblEmpty);
-    
-    JLabel lblBusy = new JLabel(String.format(
-        "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Có khách</html>",
-        COLOR_BUSY.getRed(), COLOR_BUSY.getGreen(), COLOR_BUSY.getBlue()
-    ));
-    lblBusy.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-    pLegend.add(lblBusy);
-    
-    JLabel lblSelected = new JLabel(String.format(
-        "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đang chọn</html>",
-        COLOR_SELECTED.getRed(), COLOR_SELECTED.getGreen(), COLOR_SELECTED.getBlue()
-    ));
-    lblSelected.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-    pLegend.add(lblSelected);
-    
-    // 10) Setup menu items panel (dùng pMenuArea có sẵn)
-    // pMenuArea đã có jScrollPane1 bên trong (từ NetBeans design)
-    // Tạo panel chứa menu items với 3 cột cố định, có thể cuộn
-    pMenuItems = new JPanel();
-    // Dùng GridLayout với 0 hàng (tự động) và 3 cột
-    pMenuItems.setLayout(new GridLayout(0, 3, 10, 10));
-    pMenuItems.setBackground(Color.WHITE);
-    
-    // Tìm jScrollPane1 và set viewport
-    for (java.awt.Component comp : pMenuArea.getComponents()) {
-        if (comp instanceof JScrollPane) {
-            JScrollPane scrollPane = (JScrollPane) comp;
-            scrollPane.setViewportView(pMenuItems);
-            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-            break;
-        }
-    }
-    
-    // Load initial menu from database
-    refreshMenu();
-}
+        // 4) Setup bill table model
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object[][]{},
+            new String[]{"Món", "SL", "Đơn giá", "Thành tiền"}
+        ));
 
-/**
- * Refresh menu items from database
- * Called when switching back to SalesPanel or when products are updated
- */
-public void refreshMenu() {
-    if (pMenuItems != null) {
-        pMenuItems.removeAll();
-        
-        // Load products from database
-        List<Product> products = productService.getAllProducts();
-        System.out.println("DEBUG: Loaded " + products.size() + " products from database");
-        
-        // Add menu item buttons for active products
-        int activeCount = 0;
-        for (Product product : products) {
-            System.out.println("DEBUG: Product - Name: " + product.getName() + 
-                             ", Price: " + product.getPrice() + 
-                             ", Status: " + product.getStatus() + 
-                             ", Category: " + product.getCategory());
-            
-            // Check if product is active (DangBan or Đang bán)
-            String status = product.getStatus();
-            if ("DangBan".equals(status) || "Đang bán".equals(status) || "1".equals(status)) {
-                JButton btn = createMenuItemButton(
-                    product.getName(),
-                    String.format("%.0fđ", product.getPrice()),  // %.0f cho Double, không số thập phân
-                    product.getCategory()
-                );
-                pMenuItems.add(btn);
-                activeCount++;
+        // 5) Customize summary labels
+        lblSubtotalLabel.setText("Tạm tính:");
+        lblSubtotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+
+        lblSubtotalValue.setText("0đ");
+        lblSubtotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        lblSubtotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
+        lblDiscountLabel.setText("Giảm giá (%):");
+        lblDiscountLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+
+        lblTotalLabel.setText("Tổng cộng:");
+        lblTotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
+
+        lblTotalValue.setText("0đ");
+        lblTotalValue.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+        lblTotalValue.setForeground(new java.awt.Color(52, 152, 219));
+        lblTotalValue.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
+        // 6) Customize action buttons
+        btnCancel.setText("HỦY");
+        btnCancel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btnCancel.setBackground(new java.awt.Color(231, 76, 60));
+        btnCancel.setForeground(java.awt.Color.WHITE);
+        btnCancel.setFocusPainted(false);
+        btnCancel.setPreferredSize(new java.awt.Dimension(120, 40));
+
+        btnCheckout.setText("THANH TOÁN");
+        btnCheckout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btnCheckout.setBackground(new java.awt.Color(46, 204, 113));
+        btnCheckout.setForeground(java.awt.Color.WHITE);
+        btnCheckout.setFocusPainted(false);
+        btnCheckout.setPreferredSize(new java.awt.Dimension(150, 40));
+
+        // 7) Customize discount field
+        txtDiscountPercent.setText("0");
+        txtDiscountPercent.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        txtDiscountPercent.setPreferredSize(new java.awt.Dimension(80, 25));
+
+        // 8) Setup event handlers
+        txtDiscountPercent.addActionListener(e -> updateTotalAmount());
+        txtDiscountPercent.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                updateTotalAmount();
+            }
+        });
+
+        btnCancel.addActionListener(e -> clearBill());
+        btnCheckout.addActionListener(e -> handleCheckout());
+
+        // 9) Setup Legend Panel
+        JLabel lblEmpty = new JLabel(String.format(
+            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Trống</html>",
+            COLOR_AVAILABLE.getRed(), COLOR_AVAILABLE.getGreen(), COLOR_AVAILABLE.getBlue()
+        ));
+        lblEmpty.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblEmpty);
+
+        JLabel lblBusy = new JLabel(String.format(
+            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Có khách</html>",
+            COLOR_IN_USE.getRed(), COLOR_IN_USE.getGreen(), COLOR_IN_USE.getBlue()
+        ));
+        lblBusy.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblBusy);
+
+        JLabel lblSelected = new JLabel(String.format(
+            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đang chọn</html>",
+            COLOR_SELECTED.getRed(), COLOR_SELECTED.getGreen(), COLOR_SELECTED.getBlue()
+        ));
+        lblSelected.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblSelected);
+
+        JLabel lblReserved = new JLabel(String.format(
+            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đã đặt</html>",
+            COLOR_RESERVED.getRed(), COLOR_RESERVED.getGreen(), COLOR_RESERVED.getBlue()
+        ));
+        lblReserved.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblReserved);
+
+        // 10) Setup menu items panel
+        pMenuItems = new JPanel();
+        pMenuItems.setLayout(new GridLayout(0, 3, 10, 10));
+        pMenuItems.setBackground(Color.WHITE);
+
+        for (java.awt.Component comp : pMenuArea.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) comp;
+                scrollPane.setViewportView(pMenuItems);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+                break;
             }
         }
-        
-        System.out.println("DEBUG: Added " + activeCount + " active products to menu");
-        
-        // Refresh UI
-        pMenuItems.revalidate();
-        pMenuItems.repaint();
-    } else {
-        System.out.println("DEBUG: pMenuItems is NULL!");
+
+        // Load initial menu from database
+        refreshMenu();
     }
-}
 
+    // ==================== TABLE MANAGEMENT (from sonvu) ====================
 
+    private void loadTablesFromDatabase() {
+        pTablesGrid.removeAll();
+        tableButtons.clear();
 
+        tableList = tableService.getAll();
 
+        int cols = 2;
+        int rows = Math.max(1, (int) Math.ceil(tableList.size() / (double) cols));
+        pTablesGrid.setLayout(new java.awt.GridLayout(rows, cols, 16, 16));
 
-private JButton createMenuItemButton(String name, String price, String category) {
-    JButton btn = new JButton();
-    btn.setLayout(new BorderLayout(5, 5));
-    btn.setPreferredSize(new Dimension(140, 90));  // Kích thước cố định
-    btn.setMinimumSize(new Dimension(140, 90));
-    btn.setMaximumSize(new Dimension(140, 90));
-    btn.setFocusPainted(false);
-    
-    // Label tên món
-    JLabel lblName = new JLabel(name, SwingConstants.CENTER);
-    lblName.setFont(new Font("Segoe UI", Font.BOLD, 12));
-    
-    // Label giá
-    JLabel lblPrice = new JLabel(price, SwingConstants.CENTER);
-    lblPrice.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-    lblPrice.setForeground(new Color(52, 152, 219));
-    
-    // Panel chứa text
-    JPanel textPanel = new JPanel(new GridLayout(2, 1));
-    textPanel.setOpaque(false);
-    textPanel.add(lblName);
-    textPanel.add(lblPrice);
-    
-    btn.add(textPanel, BorderLayout.CENTER);
-    
-    // Màu nền theo category
-    Color bgColor = switch (category) {
-        case "COFFEE" -> new Color(255, 255, 255);
-        case "TEA" -> new Color(255, 255, 255);
-        case "JUICE" -> new Color(255, 255, 255);
-        case "CAKE" -> new Color(255, 255, 255);
-        default -> new Color(255, 255, 255);
-    };
-    btn.setBackground(bgColor);
-    btn.setForeground(Color.WHITE);
-    
-    // Hover effect
-    btn.addMouseListener(new java.awt.event.MouseAdapter() {
-        public void mouseEntered(java.awt.event.MouseEvent evt) {
-            btn.setBackground(bgColor.brighter());
+        for (CafeTable table : tableList) {
+            JButton btn = createTableButton(table);
+            tableButtons.add(btn);
+            pTablesGrid.add(btn);
         }
-        public void mouseExited(java.awt.event.MouseEvent evt) {
-            btn.setBackground(bgColor);
-        }
-    });
-    
-    // Click handler - thêm món vào bill
-    btn.addActionListener(e -> addItemToBill(name, price));
-    
-    return btn;
-}
 
-private void addItemToBill(String itemName, String priceStr) {
-    // Parse giá (loại bỏ dấu phẩy và 'đ')
-    String priceNumeric = priceStr.replace(",", "").replace("đ", "").trim();
-    int price = Integer.parseInt(priceNumeric);
-    
-    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-    
-    // Kiểm tra món đã có trong bill chưa
-    boolean found = false;
-    for (int i = 0; i < model.getRowCount(); i++) {
-        String existingItem = (String) model.getValueAt(i, 0);
-        if (existingItem.equals(itemName)) {
-            // Tăng số lượng
-            int currentQty = (Integer) model.getValueAt(i, 1);
-            int newQty = currentQty + 1;
-            int total = newQty * price;
-            
-            model.setValueAt(newQty, i, 1);
-            model.setValueAt(formatCurrency(total), i, 3);
-            found = true;
-            break;
+        if (tableList.isEmpty()) {
+            JLabel lblNoTables = new JLabel("Chưa có bàn nào", SwingConstants.CENTER);
+            lblNoTables.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 14));
+            pTablesGrid.add(lblNoTables);
+        } else {
+            selectTable(tableList.get(0));
+        }
+
+        int buttonHeight = 70;
+        int totalHeight = rows * buttonHeight + (rows - 1) * 16 + 20;
+        pTablesGrid.setPreferredSize(new java.awt.Dimension(250, totalHeight));
+
+        pTablesGrid.revalidate();
+        pTablesGrid.repaint();
+    }
+
+    private JButton createTableButton(CafeTable table) {
+        JButton btn = new JButton(table.getName());
+        btn.setFocusPainted(false);
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
+        btn.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        btn.setForeground(java.awt.Color.WHITE);
+        btn.setPreferredSize(new java.awt.Dimension(120, 60));
+
+        updateTableButtonColor(btn, table);
+        btn.addActionListener(e -> selectTable(table));
+
+        return btn;
+    }
+
+    private void updateTableButtonColor(JButton btn, CafeTable table) {
+        boolean isSelected = (selectedTable != null && selectedTable.getId() == table.getId());
+
+        if (isSelected) {
+            btn.setBackground(COLOR_SELECTED);
+        } else {
+            switch (table.getStatus()) {
+                case "Trong":
+                    btn.setBackground(COLOR_AVAILABLE);
+                    break;
+                case "DangSuDung":
+                    btn.setBackground(COLOR_IN_USE);
+                    break;
+                case "DaDat":
+                    btn.setBackground(COLOR_RESERVED);
+                    break;
+                default:
+                    btn.setBackground(COLOR_AVAILABLE);
+            }
         }
     }
-    
-    // Nếu chưa có, thêm dòng mới
-    if (!found) {
-        model.addRow(new Object[]{
-            itemName,
-            1,
-            formatCurrency(price),
-            formatCurrency(price)
+
+    private void refreshAllTableColors() {
+        for (int i = 0; i < tableButtons.size() && i < tableList.size(); i++) {
+            updateTableButtonColor(tableButtons.get(i), tableList.get(i));
+        }
+    }
+
+    private void selectTable(CafeTable table) {
+        selectedTable = table;
+        jLabel1.setText(table.getName());
+        refreshAllTableColors();
+    }
+
+    public void refreshTables() {
+        loadTablesFromDatabase();
+    }
+
+    private void setupRefreshButton() {
+        JPanel headerPanel = new JPanel(new BorderLayout(10, 0));
+        headerPanel.setOpaque(false);
+
+        lblTablesTitle.setText("SƠ ĐỒ BÀN");
+        lblTablesTitle.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        headerPanel.add(lblTablesTitle, BorderLayout.WEST);
+
+        JButton btnRefresh = new JButton("Làm mới");
+        btnRefresh.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setBackground(new java.awt.Color(52, 152, 219));
+        btnRefresh.setForeground(java.awt.Color.WHITE);
+        btnRefresh.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnRefresh.addActionListener(e -> {
+            refreshTables();
+            JOptionPane.showMessageDialog(this, "Đã cập nhật sơ đồ bàn!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         });
-    }
-    
-    // Cập nhật tổng tiền
-    updateTotalAmount();
-}
+        headerPanel.add(btnRefresh, BorderLayout.EAST);
 
-private void updateTotalAmount() {
-    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-    int subtotal = 0;
-    
-    // Calculate subtotal
-    for (int i = 0; i < model.getRowCount(); i++) {
-        String amountStr = (String) model.getValueAt(i, 3);
-        String numericStr = amountStr.replace(",", "").replace("đ", "").trim();
-        subtotal += Integer.parseInt(numericStr);
+        pTableArea.add(headerPanel, BorderLayout.PAGE_START);
     }
-    
-    // Update subtotal label
-    lblSubtotalValue.setText(formatCurrency(subtotal));
-    
-    // Calculate discount
-    int discountPercent = 0;
-    try {
-        discountPercent = Integer.parseInt(txtDiscountPercent.getText().trim());
-        if (discountPercent < 0) discountPercent = 0;
-        if (discountPercent > 100) discountPercent = 100;
-    } catch (NumberFormatException e) {
-        discountPercent = 0;
+
+    // ==================== MENU MANAGEMENT (from HEAD) ====================
+
+    public void refreshMenu() {
+        if (pMenuItems != null) {
+            pMenuItems.removeAll();
+
+            List<Product> products = productService.getAllProducts();
+
+            for (Product product : products) {
+                String status = product.getStatus();
+                if ("DangBan".equals(status) || "Đang bán".equals(status) || "1".equals(status)) {
+                    JButton btn = createMenuItemButton(
+                        product.getName(),
+                        String.format("%.0fđ", product.getPrice()),
+                        product.getCategory()
+                    );
+                    pMenuItems.add(btn);
+                }
+            }
+
+            pMenuItems.revalidate();
+            pMenuItems.repaint();
+        }
+    }
+
+    private JButton createMenuItemButton(String name, String price, String category) {
+        JButton btn = new JButton();
+        btn.setLayout(new BorderLayout(5, 5));
+        btn.setPreferredSize(new Dimension(140, 90));
+        btn.setMinimumSize(new Dimension(140, 90));
+        btn.setMaximumSize(new Dimension(140, 90));
+        btn.setFocusPainted(false);
+
+        JLabel lblName = new JLabel(name, SwingConstants.CENTER);
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        JLabel lblPrice = new JLabel(price, SwingConstants.CENTER);
+        lblPrice.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblPrice.setForeground(new Color(52, 152, 219));
+
+        JPanel textPanel = new JPanel(new GridLayout(2, 1));
+        textPanel.setOpaque(false);
+        textPanel.add(lblName);
+        textPanel.add(lblPrice);
+
+        btn.add(textPanel, BorderLayout.CENTER);
+
+        Color bgColor = new Color(255, 255, 255);
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor.brighter());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor);
+            }
+        });
+
+        btn.addActionListener(e -> addItemToBill(name, price));
+
+        return btn;
+    }
+
+    // ==================== BILL MANAGEMENT (merged) ====================
+
+    private void addItemToBill(String itemName, String priceStr) {
+        String priceNumeric = priceStr.replace(",", "").replace("đ", "").trim();
+        int price = Integer.parseInt(priceNumeric);
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+
+        boolean found = false;
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String existingItem = (String) model.getValueAt(i, 0);
+            if (existingItem.equals(itemName)) {
+                int currentQty = (Integer) model.getValueAt(i, 1);
+                int newQty = currentQty + 1;
+                int total = newQty * price;
+
+                model.setValueAt(newQty, i, 1);
+                model.setValueAt(formatCurrency(total), i, 3);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            model.addRow(new Object[]{
+                itemName,
+                1,
+                formatCurrency(price),
+                formatCurrency(price)
+            });
+        }
+
+        updateTotalAmount();
+    }
+
+    private void updateTotalAmount() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        int subtotal = 0;
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String amountStr = (String) model.getValueAt(i, 3);
+            String numericStr = amountStr.replace(",", "").replace("đ", "").trim();
+            subtotal += Integer.parseInt(numericStr);
+        }
+
+        lblSubtotalValue.setText(formatCurrency(subtotal));
+
+        int discountPercent = 0;
+        try {
+            discountPercent = Integer.parseInt(txtDiscountPercent.getText().trim());
+            if (discountPercent < 0) discountPercent = 0;
+            if (discountPercent > 100) discountPercent = 100;
+        } catch (NumberFormatException e) {
+            discountPercent = 0;
+            txtDiscountPercent.setText("0");
+        }
+
+        int discountAmount = (subtotal * discountPercent) / 100;
+        int total = subtotal - discountAmount;
+
+        lblTotalValue.setText(formatCurrency(total));
+    }
+
+    private String formatCurrency(int amount) {
+        return String.format("%,dđ", amount);
+    }
+
+    private void clearBill() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
         txtDiscountPercent.setText("0");
+        lblSubtotalValue.setText("0đ");
+        lblTotalValue.setText("0đ");
     }
-    
-    // Calculate total with discount
-    int discountAmount = (subtotal * discountPercent) / 100;
-    int total = subtotal - discountAmount;
-    
-    // Update total label
-    lblTotalValue.setText(formatCurrency(total));
-}
 
-private String formatCurrency(int amount) {
-    return String.format("%,dđ", amount);
-}
+    // ==================== CHECKOUT (from HEAD) ====================
 
-private void clearBill() {
-    // Clear table
-    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-    model.setRowCount(0);
-    
-    // Reset discount
-    txtDiscountPercent.setText("0");
-    
-    // Reset summary values
-    lblSubtotalValue.setText("0đ");
-    lblTotalValue.setText("0đ");
-}
-
-private void selectTable(int tableNo) {
-    selectedTableNo = tableNo;
-    jLabel1.setText(String.format("Bàn %02d", tableNo));
-    refreshAllTableColors();
-}
-
-private void refreshAllTableColors() {
-    JButton[] tableBtns = { jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton7, jButton8 };
-    for (int i = 0; i < tableBtns.length; i++) {
-        int tableNo = i + 1;
-        int status = tableStatus.getOrDefault(tableNo, 0);
-        setTableColor(tableBtns[i], status, tableNo == selectedTableNo);
-    }
-}
-
-private void setTableColor(JButton btn, int status, boolean selected) {
-    if (selected) btn.setBackground(COLOR_SELECTED);
-    else if (status == 1) btn.setBackground(COLOR_BUSY);
-    else btn.setBackground(COLOR_EMPTY);
-    btn.setForeground(Color.WHITE);
-}
-
-/**
- * Xử lý thanh toán
- */
-private void handleCheckout() {
-    // 1. Validate
-    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-    if (model.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(this, "Chưa có sản phẩm nào trong hóa đơn!");
-        return;
-    }
-    
-    // 2. Confirm
-    int confirm = JOptionPane.showConfirmDialog(this, 
-        "Xác nhận thanh toán cho " + jLabel1.getText() + "?",
-        "Xác nhận thanh toán",
-        JOptionPane.YES_NO_OPTION);
-    
-    if (confirm != JOptionPane.YES_OPTION) {
-        return;
-    }
-    
-    // 3. Tạo Order object
-    Order order = new Order();
-    order.setTotalAmount(parseCurrency(lblTotalValue.getText()));
-    order.setCreatedBy(UserSession.getCurrentUser().getUsername());
-    
-    // 4. Tạo OrderDetails từ bill table
-    List<OrderDetail> details = new ArrayList<>();
-    for (int i = 0; i < model.getRowCount(); i++) {
-        String productName = model.getValueAt(i, 0).toString();
-        int quantity = Integer.parseInt(model.getValueAt(i, 1).toString());
-        double unitPrice = parseCurrency(model.getValueAt(i, 2).toString());
-        double totalPrice = parseCurrency(model.getValueAt(i, 3).toString());
-        
-        // Get product ID from name
-        int productId = productService.getProductIdByName(productName);
-        
-        if (productId == -1) {
-            JOptionPane.showMessageDialog(this, 
-                "Không tìm thấy sản phẩm: " + productName, 
-                "Lỗi", 
-                JOptionPane.ERROR_MESSAGE);
+    private void handleCheckout() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Chưa có sản phẩm nào trong hóa đơn!");
             return;
         }
-        
-        OrderDetail detail = new OrderDetail();
-        detail.setProductId(productId);
-        detail.setProductName(productName);
-        detail.setQuantity(quantity);
-        detail.setUnitPrice(unitPrice);
-        detail.setTotalPrice(totalPrice);
-        
-        details.add(detail);
-    }
-    order.setDetails(details);
-    
-    // 5. Lưu vào database
-    int orderId = orderService.createOrder(order);
-    
-    if (orderId > 0) {
-        // 6. In hóa đơn
-        printInvoice(orderId, order);
-        
-        // 7. Cập nhật trạng thái bàn về trống
-        tableStatus.put(selectedTableNo, 0);
-        refreshAllTableColors();
-        
-        // 8. Clear bill
-        clearBill();
-        
-        JOptionPane.showMessageDialog(this, 
-            "Thanh toán thành công!\nMã hóa đơn: " + orderId);
-    } else {
-        JOptionPane.showMessageDialog(this, 
-            "Lỗi khi lưu hóa đơn!", 
-            "Lỗi", 
-            JOptionPane.ERROR_MESSAGE);
-    }
-}
 
-/**
- * Parse currency string to double
- */
-private double parseCurrency(String currencyStr) {
-    return Double.parseDouble(currencyStr.replace("đ", "").replace(",", "").trim());
-}
-
-/**
- * In hóa đơn
- */
-private void printInvoice(int orderId, Order order) {
-    // Tạo dialog hiển thị hóa đơn
-    JDialog invoiceDialog = new JDialog();
-    invoiceDialog.setTitle("Hóa đơn #" + orderId);
-    invoiceDialog.setSize(400, 600);
-    invoiceDialog.setLocationRelativeTo(this);
-    
-    // Tạo nội dung hóa đơn
-    StringBuilder invoice = new StringBuilder();
-    invoice.append("===========================================\n");
-    invoice.append("QUÁN CAFE JAVA\n");
-    invoice.append("123 Đường Nguyễn Trãi\n");
-    invoice.append("ĐT: 0123456789\n");
-    invoice.append("===========================================\n\n");
-    invoice.append("Hóa đơn số: ").append(orderId).append("\n");
-    invoice.append("Ngày: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(order.getCreatedDate())).append("\n");
-    invoice.append(jLabel1.getText()).append(" - ").append(jLabel2.getText()).append("\n");
-    invoice.append("Nhân viên: ").append(UserSession.getCurrentUser().getFullname()).append("\n");
-    invoice.append("-------------------------------------------\n\n");
-    
-    // Chi tiết sản phẩm
-    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-    for (int i = 0; i < model.getRowCount(); i++) {
-        String name = model.getValueAt(i, 0).toString();
-        String qty = model.getValueAt(i, 1).toString();
-        String total = model.getValueAt(i, 3).toString();
-        
-        invoice.append(String.format("%-20s x%2s  %10s\n", name, qty, total));
-    }
-    
-    invoice.append("\n-------------------------------------------\n");
-    invoice.append(String.format("%-20s %15s\n", lblSubtotalLabel.getText(), lblSubtotalValue.getText()));
-    invoice.append(String.format("%-20s %15s\n", lblDiscountLabel.getText(), txtDiscountPercent.getText() + "%"));
-    invoice.append(String.format("%-20s %15s\n", lblTotalLabel.getText(), lblTotalValue.getText()));
-    invoice.append("-------------------------------------------\n\n");
-    invoice.append("     Cảm ơn quý khách! Hẹn gặp lại!\n");
-    invoice.append("===========================================\n");
-    
-    // Hiển thị trong JTextPane với căn giữa
-    JTextPane textPane = new JTextPane();
-    textPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
-    textPane.setEditable(false);
-    textPane.setText(invoice.toString());
-    
-    // Căn giữa toàn bộ text
-    javax.swing.text.StyledDocument doc = textPane.getStyledDocument();
-    javax.swing.text.SimpleAttributeSet center = new javax.swing.text.SimpleAttributeSet();
-    javax.swing.text.StyleConstants.setAlignment(center, javax.swing.text.StyleConstants.ALIGN_CENTER);
-    doc.setParagraphAttributes(0, doc.getLength(), center, false);
-    
-    JScrollPane scrollPane = new JScrollPane(textPane);
-    invoiceDialog.add(scrollPane, BorderLayout.CENTER);
-    
-    // Nút in
-    JButton btnPrint = new JButton("In");
-    btnPrint.addActionListener(e -> {
-        try {
-            textPane.print();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(invoiceDialog, "Lỗi khi in: " + ex.getMessage());
+        if (selectedTable == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn bàn trước khi thanh toán!");
+            return;
         }
-    });
-    
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.add(btnPrint);
-    invoiceDialog.add(buttonPanel, BorderLayout.SOUTH);
-    
-    invoiceDialog.setVisible(true);
-}
-  
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Xác nhận thanh toán cho " + jLabel1.getText() + "?",
+            "Xác nhận thanh toán",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        Order order = new Order();
+        order.setTotalAmount(parseCurrency(lblTotalValue.getText()));
+        order.setCreatedBy(UserSession.getCurrentUser().getUserName());
+
+        List<OrderDetail> details = new ArrayList<>();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String productName = model.getValueAt(i, 0).toString();
+            int quantity = Integer.parseInt(model.getValueAt(i, 1).toString());
+            double unitPrice = parseCurrency(model.getValueAt(i, 2).toString());
+            double totalPrice = parseCurrency(model.getValueAt(i, 3).toString());
+
+            int productId = productService.getProductIdByName(productName);
+
+            if (productId == -1) {
+                JOptionPane.showMessageDialog(this,
+                    "Không tìm thấy sản phẩm: " + productName,
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            OrderDetail detail = new OrderDetail();
+            detail.setProductId(productId);
+            detail.setProductName(productName);
+            detail.setQuantity(quantity);
+            detail.setUnitPrice(unitPrice);
+            detail.setTotalPrice(totalPrice);
+
+            details.add(detail);
+        }
+        order.setDetails(details);
+
+        int orderId = orderService.createOrder(order);
+
+        if (orderId > 0) {
+            printInvoice(orderId, order);
+
+            // Update table status to available
+            if (selectedTable != null) {
+                selectedTable.setStatus("Trong");
+                try {
+                    tableService.changeStatus(selectedTable.getId(), "Trong");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                refreshAllTableColors();
+            }
+
+            clearBill();
+
+            JOptionPane.showMessageDialog(this,
+                "Thanh toán thành công!\nMã hóa đơn: " + orderId);
+        } else {
+            JOptionPane.showMessageDialog(this,
+                "Lỗi khi lưu hóa đơn!",
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private double parseCurrency(String currencyStr) {
+        return Double.parseDouble(currencyStr.replace("đ", "").replace(",", "").trim());
+    }
+
+    private void printInvoice(int orderId, Order order) {
+        JDialog invoiceDialog = new JDialog();
+        invoiceDialog.setTitle("Hóa đơn #" + orderId);
+        invoiceDialog.setSize(400, 600);
+        invoiceDialog.setLocationRelativeTo(this);
+
+        StringBuilder invoice = new StringBuilder();
+        invoice.append("===========================================\n");
+        invoice.append("QUÁN CAFE JAVA\n");
+        invoice.append("123 Đường Nguyễn Trãi\n");
+        invoice.append("ĐT: 0123456789\n");
+        invoice.append("===========================================\n\n");
+        invoice.append("Hóa đơn số: ").append(orderId).append("\n");
+        invoice.append("Ngày: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(order.getCreatedDate())).append("\n");
+        invoice.append(jLabel1.getText()).append(" - ").append(jLabel2.getText()).append("\n");
+        invoice.append("Nhân viên: ").append(UserSession.getCurrentUser().getFullName()).append("\n");
+        invoice.append("-------------------------------------------\n\n");
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String name = model.getValueAt(i, 0).toString();
+            String qty = model.getValueAt(i, 1).toString();
+            String total = model.getValueAt(i, 3).toString();
+            invoice.append(String.format("%-20s x%2s  %10s\n", name, qty, total));
+        }
+
+        invoice.append("\n-------------------------------------------\n");
+        invoice.append(String.format("%-20s %15s\n", lblSubtotalLabel.getText(), lblSubtotalValue.getText()));
+        invoice.append(String.format("%-20s %15s\n", lblDiscountLabel.getText(), txtDiscountPercent.getText() + "%"));
+        invoice.append(String.format("%-20s %15s\n", lblTotalLabel.getText(), lblTotalValue.getText()));
+        invoice.append("-------------------------------------------\n\n");
+        invoice.append("     Cảm ơn quý khách! Hẹn gặp lại!\n");
+        invoice.append("===========================================\n");
+
+        JTextPane textPane = new JTextPane();
+        textPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        textPane.setEditable(false);
+        textPane.setText(invoice.toString());
+
+        javax.swing.text.StyledDocument doc = textPane.getStyledDocument();
+        javax.swing.text.SimpleAttributeSet center = new javax.swing.text.SimpleAttributeSet();
+        javax.swing.text.StyleConstants.setAlignment(center, javax.swing.text.StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+        JScrollPane scrollPane = new JScrollPane(textPane);
+        invoiceDialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton btnPrint = new JButton("In");
+        btnPrint.addActionListener(e -> {
+            try {
+                textPane.print();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(invoiceDialog, "Lỗi khi in: " + ex.getMessage());
+            }
+        });
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(btnPrint);
+        invoiceDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        invoiceDialog.setVisible(true);
+    }
+
+    // ==================== GENERATED CODE (NetBeans) ====================
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -585,7 +609,7 @@ private void printInvoice(int orderId, Order order) {
         btnCheckout = new javax.swing.JButton();
         pTableArea = new javax.swing.JPanel();
         lblTablesTitle = new javax.swing.JLabel();
-        jScrollPane3 = new javax.swing.JScrollPane();  // ScrollPane cho bàn
+        jScrollPane3 = new javax.swing.JScrollPane();
         pTablesGrid = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -595,19 +619,15 @@ private void printInvoice(int orderId, Order order) {
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
-        pLegend = new javax.swing.JPanel();  // Legend panel thay vì jPanel1
-
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
+                jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 100, Short.MAX_VALUE));
         jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
+                jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 100, Short.MAX_VALUE));
 
         setLayout(new java.awt.BorderLayout());
 
@@ -652,37 +672,36 @@ private void printInvoice(int orderId, Order order) {
         javax.swing.GroupLayout pBillHeaderLayout = new javax.swing.GroupLayout(pBillHeader);
         pBillHeader.setLayout(pBillHeaderLayout);
         pBillHeaderLayout.setHorizontalGroup(
-            pBillHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pBillHeaderLayout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel2)
-                .addGap(44, 44, 44))
-        );
+                pBillHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(pBillHeaderLayout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel2)
+                                .addGap(44, 44, 44)));
         pBillHeaderLayout.setVerticalGroup(
-            pBillHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pBillHeaderLayout.createSequentialGroup()
-                .addGap(39, 39, 39)
-                .addGroup(pBillHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addContainerGap(45, Short.MAX_VALUE))
-        );
+                pBillHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(pBillHeaderLayout.createSequentialGroup()
+                                .addGap(39, 39, 39)
+                                .addGroup(pBillHeaderLayout
+                                        .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel1)
+                                        .addComponent(jLabel2))
+                                .addContainerGap(45, Short.MAX_VALUE)));
 
         pBillArea.add(pBillHeader, java.awt.BorderLayout.PAGE_START);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
+                new Object[][] {
+                        { null, null, null, null },
+                        { null, null, null, null },
+                        { null, null, null, null },
+                        { null, null, null, null }
+                },
+                new String[] {
+                        "Title 1", "Title 2", "Title 3", "Title 4"
+                }));
         jScrollPane2.setViewportView(jTable1);
 
         pBillArea.add(jScrollPane2, java.awt.BorderLayout.CENTER);
@@ -690,13 +709,11 @@ private void printInvoice(int orderId, Order order) {
         pBillBottom.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
         pBillBottom.setLayout(new java.awt.BorderLayout(0, 10));
 
-        // Summary panel with GridBagLayout for better control
         pSummaryPanel.setLayout(new java.awt.GridBagLayout());
         java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
         gbc.insets = new java.awt.Insets(5, 5, 5, 5);
         gbc.anchor = java.awt.GridBagConstraints.WEST;
 
-        // Tạm tính
         lblSubtotalLabel.setText("Tạm tính:");
         lblSubtotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
         gbc.gridx = 0;
@@ -712,7 +729,6 @@ private void printInvoice(int orderId, Order order) {
         gbc.anchor = java.awt.GridBagConstraints.EAST;
         pSummaryPanel.add(lblSubtotalValue, gbc);
 
-        // Giảm giá
         lblDiscountLabel.setText("Giảm giá (%):");
         lblDiscountLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
         gbc.gridx = 0;
@@ -727,7 +743,6 @@ private void printInvoice(int orderId, Order order) {
         gbc.anchor = java.awt.GridBagConstraints.EAST;
         pSummaryPanel.add(txtDiscountPercent, gbc);
 
-        // Tổng cộng
         lblTotalLabel.setText("Tổng cộng:");
         lblTotalLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
         gbc.gridx = 0;
@@ -745,7 +760,6 @@ private void printInvoice(int orderId, Order order) {
 
         pBillBottom.add(pSummaryPanel, java.awt.BorderLayout.CENTER);
 
-        // Buttons panel
         pSouth.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
 
         btnCancel.setText("HỦY");
@@ -778,7 +792,7 @@ private void printInvoice(int orderId, Order order) {
         lblTablesTitle.setText("SƠ ĐỒ BÀN ");
         pTableArea.add(lblTablesTitle, java.awt.BorderLayout.PAGE_START);
 
-        // Wrap pTablesGrid in ScrollPane
+        // Dynamic grid layout (0 rows = auto)
         pTablesGrid.setLayout(new java.awt.GridLayout(0, 2, 16, 16));
 
         jButton1.setText("jButton1");
@@ -805,25 +819,22 @@ private void printInvoice(int orderId, Order order) {
         jButton8.setText("jButton8");
         pTablesGrid.add(jButton8);
 
-        // Add pTablesGrid to ScrollPane
+        // Wrap pTablesGrid in ScrollPane
         jScrollPane3.setViewportView(pTablesGrid);
         jScrollPane3.setBorder(null);
         pTableArea.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
         // Create Legend Panel
-        pLegend.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
-        pLegend.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // Legend labels will be added in initLogic()
-        
+        pLegend = new javax.swing.JPanel();
+        pLegend.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 8, 5));
+        pLegend.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
         pTableArea.add(pLegend, java.awt.BorderLayout.PAGE_END);
 
         jSplitPane1.setLeftComponent(pTableArea);
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
-
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAll;
@@ -843,10 +854,11 @@ private void printInvoice(int orderId, Order order) {
     private javax.swing.JButton jButton8;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel pLegend;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;  // ScrollPane cho bàn
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTable jTable1;
@@ -860,7 +872,6 @@ private void printInvoice(int orderId, Order order) {
     private javax.swing.JPanel pBillBottom;
     private javax.swing.JPanel pBillHeader;
     private javax.swing.JPanel pFilterBar;
-    private javax.swing.JPanel pLegend;  // Legend panel
     private javax.swing.JPanel pMenuArea;
     private javax.swing.JPanel pSouth;
     private javax.swing.JPanel pSummaryPanel;

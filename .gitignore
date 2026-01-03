@@ -2,3 +2,6 @@
 /dist/
 /nbproject/private/
 /*.class
+.idea/
+.vscode/
+*.iml

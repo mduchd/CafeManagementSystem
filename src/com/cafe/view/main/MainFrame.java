@@ -4,19 +4,21 @@ package com.cafe.view.main;
 import com.cafe.view.sales.SalesPanel;
 import com.cafe.view.product.ProductPanel;
 import com.cafe.service.UserSession;
+
 /**
  *
  * @author Owner
  */
 public class MainFrame extends javax.swing.JFrame {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainFrame.class.getName());
-    
+
+    private static final java.util.logging.Logger logger = java.util.logging.Logger
+            .getLogger(MainFrame.class.getName());
+
     // Color scheme
-    private static final java.awt.Color SIDEBAR_BG = new java.awt.Color(30, 58, 95);      // Dark blue
-    private static final java.awt.Color SIDEBAR_HOVER = new java.awt.Color(41, 82, 130);  // Lighter blue
+    private static final java.awt.Color SIDEBAR_BG = new java.awt.Color(30, 58, 95); // Dark blue
+    private static final java.awt.Color SIDEBAR_HOVER = new java.awt.Color(41, 82, 130); // Lighter blue
     private static final java.awt.Color SIDEBAR_ACTIVE = new java.awt.Color(52, 152, 219); // Bright blue
-    
+
     private javax.swing.JButton activeButton = null;
     private java.awt.CardLayout cardLayout;
     private SalesPanel salesPanel; // Store SalesPanel instance to reuse
@@ -28,36 +30,36 @@ public class MainFrame extends javax.swing.JFrame {
         super("Hệ thống quản lý Cafe");
         initComponents();
         initCustomLogic();
-        
+
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1400, 800);
         setLocationRelativeTo(null);
     }
-    
+
     private void initCustomLogic() {
         // Setup CardLayout
         cardLayout = (java.awt.CardLayout) pContent.getLayout();
-        
+
         // Create and store SalesPanel instance (will be reused for STAFF)
         salesPanel = new SalesPanel();
-        
+
         // Add panels to content area
         pContent.add(salesPanel, "SALES");
-        pContent.add(createPlaceholderPanel("Quản lý Bàn"), "TABLES");
-        pContent.add(new ProductPanel(), "PRODUCTS");  // ← NỐI PRODUCTPANEL
+        pContent.add(new com.cafe.view.table.TablePanel(), "TABLES");  // TablePanel from sonvu
+        pContent.add(new ProductPanel(), "PRODUCTS");  // ProductPanel from HEAD
         pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
         pContent.add(createPlaceholderPanel("Thống kê"), "STATS");
-        pContent.add(createPlaceholderPanel("Quản lý Nhân viên"), "EMPLOYEES");
-        
+        pContent.add(new com.cafe.view.employee.EmployeePanel(), "EMPLOYEES");
+
         // Style sidebar
         pSidebar.setBackground(SIDEBAR_BG);
         pLogo.setBackground(SIDEBAR_BG);
         pMenu.setBackground(SIDEBAR_BG);
-        
+
         // Style logo
         jLabel1.setForeground(java.awt.Color.WHITE);
         jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
-        
+
         // Setup menu buttons
         setupMenuButton(btnSales, "Bán hàng", "SALES");
         setupMenuButton(btnTables, "Bàn", "TABLES");
@@ -65,21 +67,21 @@ public class MainFrame extends javax.swing.JFrame {
         setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
         setupMenuButton(btnStats, "Thống kê", "STATS");
         setupMenuButton(btnEmployee, "Nhân viên", "EMPLOYEES");
-        
+
         // Setup role indicator panel at bottom of sidebar
         setupRoleIndicatorPanel();
-        
+
         // Apply role-based permissions
         // Note: User should be logged in via UserSession before creating MainFrame
         applyRolePermissions();
-        
+
         // Set initial active button (only if manager)
         if (UserSession.isManager()) {
             setActiveButton(btnSales);
         }
         cardLayout.show(pContent, "SALES");
     }
-    
+
     /**
      * Setup role indicator panel at bottom of sidebar
      */
@@ -88,26 +90,27 @@ public class MainFrame extends javax.swing.JFrame {
         pRoleIndicator.setBackground(SIDEBAR_BG);
         pRoleIndicator.setLayout(new java.awt.BorderLayout());
         pRoleIndicator.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
+
         // Role label
         javax.swing.JLabel lblRole = new javax.swing.JLabel();
         lblRole.setForeground(java.awt.Color.WHITE);
         lblRole.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
         lblRole.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        
+
         // Update role label based on current user
         com.cafe.model.User user = UserSession.getCurrentUser();
-        String userName = user != null ? (user.getFullname() != null ? user.getFullname() : user.getUsername()) : "Guest";
+        String userName = user != null ? (user.getFullName() != null ? user.getFullName() : user.getUserName())
+                : "Guest";
         String roleText = UserSession.isManager() ? "Quản lý" : "Nhân viên";
         lblRole.setText("<html><center>" + userName + "<br><small>" + roleText + "</small></center></html>");
-        
+
         pRoleIndicator.add(lblRole, java.awt.BorderLayout.CENTER);
-        
+
         // Button panel (for Change Password and Logout buttons)
         javax.swing.JPanel pButtons = new javax.swing.JPanel();
         pButtons.setBackground(SIDEBAR_BG);
         pButtons.setLayout(new java.awt.GridLayout(2, 1, 0, 5));
-        
+
         // Change Password button (only for Manager/Admin)
         if (UserSession.isManager()) {
             javax.swing.JButton btnChangePass = new javax.swing.JButton("Đổi mật khẩu");
@@ -118,14 +121,13 @@ public class MainFrame extends javax.swing.JFrame {
             btnChangePass.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
             btnChangePass.addActionListener(e -> {
                 // Open ChangePassDialog
-                com.cafe.view.login.ChangePassDialog dialog = 
-                    new com.cafe.view.login.ChangePassDialog(this, true);
+                com.cafe.view.login.ChangePassDialog dialog = new com.cafe.view.login.ChangePassDialog(this, true);
                 dialog.setLocationRelativeTo(this);
                 dialog.setVisible(true);
             });
             pButtons.add(btnChangePass);
         }
-        
+
         // Logout button
         javax.swing.JButton btnLogout = new javax.swing.JButton("Đăng xuất");
         btnLogout.setForeground(java.awt.Color.WHITE);
@@ -139,13 +141,13 @@ public class MainFrame extends javax.swing.JFrame {
             // TODO: Show login screen
         });
         pButtons.add(btnLogout);
-        
+
         pRoleIndicator.add(pButtons, java.awt.BorderLayout.SOUTH);
-        
+
         // Add to sidebar
         pSidebar.add(pRoleIndicator, java.awt.BorderLayout.PAGE_END);
     }
-    
+
     /**
      * Apply role-based permissions to menu items
      */
@@ -153,16 +155,16 @@ public class MainFrame extends javax.swing.JFrame {
         if (UserSession.isStaff()) {
             // STAFF: Hide sidebar completely, show only SalesPanel
             pSidebar.setVisible(false);
-            
+
             // Show only Sales panel
             cardLayout.show(pContent, "SALES");
-            
+
             // Add logout button for STAFF in top-right corner
             addStaffLogoutButton();
         } else if (UserSession.isManager()) {
             // MANAGER: Show sidebar with all menus
             pSidebar.setVisible(true);
-            
+
             // Show all menu buttons
             btnSales.setVisible(true);
             btnTables.setVisible(true);
@@ -172,7 +174,7 @@ public class MainFrame extends javax.swing.JFrame {
             btnEmployee.setVisible(true);
         }
     }
-    
+
     /**
      * Add logout button for STAFF users in top-right corner
      * This method wraps the SalesPanel with a logout button at the top
@@ -182,15 +184,16 @@ public class MainFrame extends javax.swing.JFrame {
         javax.swing.JPanel pStaffLogout = new javax.swing.JPanel();
         pStaffLogout.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 10));
         pStaffLogout.setBackground(java.awt.Color.WHITE);
-        
+
         // User info label
         javax.swing.JLabel lblUserInfo = new javax.swing.JLabel();
         com.cafe.model.User user = UserSession.getCurrentUser();
-        String userName = user != null ? (user.getFullname() != null ? user.getFullname() : user.getUsername()) : "Guest";
+        String userName = user != null ? (user.getFullName() != null ? user.getFullName() : user.getUserName())
+                : "Guest";
         lblUserInfo.setText(userName + " (Nhân viên)");
         lblUserInfo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
         pStaffLogout.add(lblUserInfo);
-        
+
         // Logout button
         javax.swing.JButton btnStaffLogout = new javax.swing.JButton("Đăng xuất");
         btnStaffLogout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
@@ -203,26 +206,28 @@ public class MainFrame extends javax.swing.JFrame {
             UserSession.clear();
             dispose();
             // TODO: Show login screen
-            javax.swing.JOptionPane.showMessageDialog(null, 
-                "Đã đăng xuất. Vui lòng đăng nhập lại.", 
-                "Đăng xuất", 
-                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Đã đăng xuất. Vui lòng đăng nhập lại.",
+                    "Đăng xuất",
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
         });
         pStaffLogout.add(btnStaffLogout);
-        
-        // Create a wrapper panel with BorderLayout to hold both logout button and SalesPanel
-        // Note: Create NEW SalesPanel for STAFF to avoid rendering issues when moving between layouts
+
+        // Create a wrapper panel with BorderLayout to hold both logout button and
+        // SalesPanel
+        // Note: Create NEW SalesPanel for STAFF to avoid rendering issues when moving
+        // between layouts
         javax.swing.JPanel wrapperPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
         wrapperPanel.add(pStaffLogout, java.awt.BorderLayout.PAGE_START);
         wrapperPanel.add(new SalesPanel(), java.awt.BorderLayout.CENTER);
-        
+
         // Replace the SALES card with the wrapper panel
         pContent.removeAll();
         pContent.add(wrapperPanel, "SALES");
         pContent.revalidate();
         pContent.repaint();
     }
-    
+
     private void setupMenuButton(javax.swing.JButton btn, String text, String cardName) {
         btn.setText(text);
         btn.setForeground(java.awt.Color.WHITE);
@@ -236,7 +241,7 @@ public class MainFrame extends javax.swing.JFrame {
         btn.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 20, 12, 20));
         btn.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 50));
         btn.setPreferredSize(new java.awt.Dimension(200, 50));
-        
+
         // Hover effect
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -245,7 +250,7 @@ public class MainFrame extends javax.swing.JFrame {
                     btn.setBackground(SIDEBAR_HOVER);
                 }
             }
-            
+
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 if (btn != activeButton) {
@@ -253,7 +258,7 @@ public class MainFrame extends javax.swing.JFrame {
                 }
             }
         });
-        
+
         // Click handler
         btn.addActionListener(e -> {
             setActiveButton(btn);
@@ -266,18 +271,18 @@ public class MainFrame extends javax.swing.JFrame {
             cardLayout.show(pContent, cardName);
         });
     }
-    
+
     private void setActiveButton(javax.swing.JButton btn) {
         // Reset previous active button
         if (activeButton != null) {
             activeButton.setBackground(SIDEBAR_BG);
         }
-        
+
         // Set new active button
         activeButton = btn;
         activeButton.setBackground(SIDEBAR_ACTIVE);
     }
-    
+
     private javax.swing.JPanel createPlaceholderPanel(String title) {
         javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
         javax.swing.JLabel label = new javax.swing.JLabel(title, javax.swing.SwingConstants.CENTER);
@@ -293,7 +298,8 @@ public class MainFrame extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         pSidebar = new javax.swing.JPanel();
@@ -320,19 +326,17 @@ public class MainFrame extends javax.swing.JFrame {
         javax.swing.GroupLayout pLogoLayout = new javax.swing.GroupLayout(pLogo);
         pLogo.setLayout(pLogoLayout);
         pLogoLayout.setHorizontalGroup(
-            pLogoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pLogoLayout.createSequentialGroup()
-                .addGap(62, 62, 62)
-                .addComponent(jLabel1)
-                .addContainerGap(77, Short.MAX_VALUE))
-        );
+                pLogoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(pLogoLayout.createSequentialGroup()
+                                .addGap(62, 62, 62)
+                                .addComponent(jLabel1)
+                                .addContainerGap(77, Short.MAX_VALUE)));
         pLogoLayout.setVerticalGroup(
-            pLogoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pLogoLayout.createSequentialGroup()
-                .addContainerGap(47, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(37, 37, 37))
-        );
+                pLogoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pLogoLayout.createSequentialGroup()
+                                .addContainerGap(47, Short.MAX_VALUE)
+                                .addComponent(jLabel1)
+                                .addGap(37, 37, 37)));
 
         pSidebar.add(pLogo, java.awt.BorderLayout.PAGE_START);
 
