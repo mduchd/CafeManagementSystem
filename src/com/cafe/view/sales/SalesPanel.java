@@ -11,23 +11,25 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+// Sales Panel - Point of Sale (POS) interface for cafe orders
 public class SalesPanel extends javax.swing.JPanel {
 
-    // Color constants for 3 table statuses
-    private static final Color COLOR_AVAILABLE = new Color(46, 204, 113); // green: Trong (available)
-    private static final Color COLOR_IN_USE = new Color(231, 76, 60); // red: DangSuDung (in use)
-    private static final Color COLOR_RESERVED = new Color(241, 196, 15); // yellow: DaDat (reserved)
-    private static final Color COLOR_SELECTED = new Color(52, 152, 219); // blue: currently selected
+    // Color constants for table statuses
+    private static final Color COLOR_AVAILABLE = new Color(46, 204, 113); // Green: available
+    private static final Color COLOR_IN_USE = new Color(231, 76, 60); // Red: in use
+    private static final Color COLOR_RESERVED = new Color(241, 196, 15); // Yellow: reserved
+    private static final Color COLOR_SELECTED = new Color(52, 152, 219); // Blue: selected
 
-    // Services
+    // Services for database operations
     private final CafeTableService tableService = new CafeTableService();
     private final com.cafe.service.ProductService productService = new com.cafe.service.ProductService();
 
-    // Table data from database
+    // Table management data
     private List<CafeTable> tableList = new ArrayList<>();
     private CafeTable selectedTable = null;
     private List<JButton> tableButtons = new ArrayList<>();
 
+    // Constructor - initialize UI and logic
     public SalesPanel() {
         initComponents();
         initLogic();
@@ -107,11 +109,29 @@ public class SalesPanel extends javax.swing.JPanel {
         });
 
         btnCancel.addActionListener(e -> clearBill());
+
+        // 9) Setup Legend Panel (Chú thích màu sắc)
+        // Sử dụng HTML để hiển thị hình tròn màu đúng
+        JLabel lblEmpty = new JLabel(String.format(
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Trống</html>",
+                COLOR_AVAILABLE.getRed(), COLOR_AVAILABLE.getGreen(), COLOR_AVAILABLE.getBlue()));
+        lblEmpty.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblEmpty);
+
+        JLabel lblBusy = new JLabel(String.format(
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Có khách</html>",
+                COLOR_IN_USE.getRed(), COLOR_IN_USE.getGreen(), COLOR_IN_USE.getBlue()));
+        lblBusy.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblBusy);
+
+        JLabel lblSelected = new JLabel(String.format(
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đang chọn</html>",
+                COLOR_SELECTED.getRed(), COLOR_SELECTED.getGreen(), COLOR_SELECTED.getBlue()));
+        lblSelected.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pLegend.add(lblSelected);
     }
 
-    /**
-     * Load tables from database and create dynamic table buttons
-     */
+    // Load tables from database and create dynamic table buttons
     private void loadTablesFromDatabase() {
         // Clear existing buttons
         pTablesGrid.removeAll();
@@ -121,8 +141,9 @@ public class SalesPanel extends javax.swing.JPanel {
         tableList = tableService.getAll();
 
         // Calculate grid layout (max 2 columns)
-        int rows = Math.max(1, (int) Math.ceil(tableList.size() / 2.0));
-        pTablesGrid.setLayout(new java.awt.GridLayout(rows, 2, 16, 16));
+        int cols = 2;
+        int rows = Math.max(1, (int) Math.ceil(tableList.size() / (double) cols));
+        pTablesGrid.setLayout(new java.awt.GridLayout(rows, cols, 16, 16));
 
         // Create button for each table
         for (CafeTable table : tableList) {
@@ -141,14 +162,17 @@ public class SalesPanel extends javax.swing.JPanel {
             selectTable(tableList.get(0));
         }
 
+        // Set preferred size for scrolling (each button ~60px height + 16px gap)
+        int buttonHeight = 70;
+        int totalHeight = rows * buttonHeight + (rows - 1) * 16 + 20;
+        pTablesGrid.setPreferredSize(new java.awt.Dimension(250, totalHeight));
+
         // Refresh UI
         pTablesGrid.revalidate();
         pTablesGrid.repaint();
     }
 
-    /**
-     * Create a styled button for a table
-     */
+    // Create a styled button for a table
     private JButton createTableButton(CafeTable table) {
         JButton btn = new JButton(table.getName());
         btn.setFocusPainted(false);
@@ -167,9 +191,7 @@ public class SalesPanel extends javax.swing.JPanel {
         return btn;
     }
 
-    /**
-     * Update button color based on table status
-     */
+    // Update button color based on table status
     private void updateTableButtonColor(JButton btn, CafeTable table) {
         boolean isSelected = (selectedTable != null && selectedTable.getId() == table.getId());
 
@@ -193,35 +215,26 @@ public class SalesPanel extends javax.swing.JPanel {
         }
     }
 
-    /**
-     * Refresh all table button colors
-     */
+    // Refresh all table button colors
     private void refreshAllTableColors() {
         for (int i = 0; i < tableButtons.size() && i < tableList.size(); i++) {
             updateTableButtonColor(tableButtons.get(i), tableList.get(i));
         }
     }
 
-    /**
-     * Select a table and update UI
-     */
+    // Select a table and update UI
     private void selectTable(CafeTable table) {
         selectedTable = table;
         jLabel1.setText(table.getName());
         refreshAllTableColors();
     }
 
-    /**
-     * Public method to refresh tables from database
-     * Can be called from other panels when table data changes
-     */
+    // Public method to refresh tables from database
     public void refreshTables() {
         loadTablesFromDatabase();
     }
 
-    /**
-     * Setup refresh button in table diagram header
-     */
+    // Setup refresh button in table diagram header
     private void setupRefreshButton() {
         // Create header panel with title and refresh button
         JPanel headerPanel = new JPanel(new BorderLayout(10, 0));
@@ -233,7 +246,7 @@ public class SalesPanel extends javax.swing.JPanel {
         headerPanel.add(lblTablesTitle, BorderLayout.WEST);
 
         // Refresh button
-        JButton btnRefresh = new JButton("🔄 Làm mới");
+        JButton btnRefresh = new JButton("Làm mới");
         btnRefresh.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBackground(new java.awt.Color(52, 152, 219));
@@ -249,6 +262,7 @@ public class SalesPanel extends javax.swing.JPanel {
         pTableArea.add(headerPanel, BorderLayout.PAGE_START);
     }
 
+    // Create a menu item button with name, price and category
     private JButton createMenuItemButton(String name, String price, String category) {
         JButton btn = new JButton();
         btn.setLayout(new BorderLayout(5, 5));
@@ -300,6 +314,7 @@ public class SalesPanel extends javax.swing.JPanel {
         return btn;
     }
 
+    // Add item to bill or increase quantity if exists
     private void addItemToBill(String itemName, String priceStr) {
         // Parse giá (loại bỏ dấu phẩy và 'đ')
         String priceNumeric = priceStr.replace(",", "").replace("đ", "").trim();
@@ -338,6 +353,7 @@ public class SalesPanel extends javax.swing.JPanel {
         updateTotalAmount();
     }
 
+    // Calculate and update subtotal and total with discount
     private void updateTotalAmount() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         int subtotal = 0;
@@ -373,10 +389,12 @@ public class SalesPanel extends javax.swing.JPanel {
         lblTotalValue.setText(formatCurrency(total));
     }
 
+    // Format number to Vietnamese currency
     private String formatCurrency(int amount) {
         return String.format("%,dđ", amount);
     }
 
+    // Clear all items from bill and reset values
     private void clearBill() {
         // Clear table
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -425,6 +443,7 @@ public class SalesPanel extends javax.swing.JPanel {
         btnCheckout = new javax.swing.JButton();
         pTableArea = new javax.swing.JPanel();
         lblTablesTitle = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane(); // ScrollPane cho bàn
         pTablesGrid = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -434,7 +453,6 @@ public class SalesPanel extends javax.swing.JPanel {
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -639,18 +657,19 @@ public class SalesPanel extends javax.swing.JPanel {
         jButton8.setText("jButton8");
         pTablesGrid.add(jButton8);
 
-        pTableArea.add(pTablesGrid, java.awt.BorderLayout.CENTER);
+        // Wrap pTablesGrid in ScrollPane
+        jScrollPane3.setViewportView(pTablesGrid);
+        jScrollPane3.setBorder(null);
+        pTableArea.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 344, Short.MAX_VALUE));
-        jPanel1Layout.setVerticalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 100, Short.MAX_VALUE));
+        // Create Legend Panel
+        pLegend = new javax.swing.JPanel();
+        pLegend.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
+        pLegend.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        pTableArea.add(jPanel1, java.awt.BorderLayout.PAGE_END);
+        // Legend labels will be added in initLogic()
+
+        pTableArea.add(pLegend, java.awt.BorderLayout.PAGE_END);
 
         jSplitPane1.setLeftComponent(pTableArea);
 
@@ -675,10 +694,11 @@ public class SalesPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButton8;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel pLegend;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3; // ScrollPane cho bàn
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTable jTable1;

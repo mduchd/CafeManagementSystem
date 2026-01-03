@@ -8,20 +8,26 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+// Table Management Panel - CRUD operations for cafe tables
 public class TablePanel extends JPanel {
+    // Service for database operations
     private CafeTableService tableService = new CafeTableService();
+
+    // Table components
     private JTable tblTables;
     private DefaultTableModel tableModel;
 
-    // Form fields
+    // Form input fields
     private JTextField txtName;
     private JComboBox<String> cboStatus;
     private JSpinner spnCapacity;
     private JTextField txtLocation;
     private JTextField txtSearch;
 
+    // Currently selected table ID (-1 = none)
     private int selectedId = -1;
 
+    // Constructor - initialize UI and load data
     public TablePanel() {
         initComponents();
         loadData();
@@ -86,19 +92,24 @@ public class TablePanel extends JPanel {
         pRight.setLayout(new BoxLayout(pRight, BoxLayout.Y_AXIS));
         pRight.setBackground(new Color(245, 245, 245));
         pRight.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-        pRight.setPreferredSize(new Dimension(250, 0));
+        pRight.setPreferredSize(new Dimension(280, 0));
 
-        // Form title
+        // Form title - căn giữa bằng panel riêng
+        JPanel pTitle = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pTitle.setBackground(new Color(245, 245, 245));
+        pTitle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        pTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         JLabel lblForm = new JLabel("Thông tin bàn");
         lblForm.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblForm.setAlignmentX(Component.LEFT_ALIGNMENT);
-        pRight.add(lblForm);
+        pTitle.add(lblForm);
+        pRight.add(pTitle);
         pRight.add(Box.createVerticalStrut(15));
 
         // Name
         pRight.add(createLabel("Tên bàn *"));
         txtName = new JTextField();
         txtName.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        txtName.setAlignmentX(Component.CENTER_ALIGNMENT);
         pRight.add(txtName);
         pRight.add(Box.createVerticalStrut(10));
 
@@ -106,6 +117,7 @@ public class TablePanel extends JPanel {
         pRight.add(createLabel("Trạng thái"));
         cboStatus = new JComboBox<>(new String[] { "Trong", "DangSuDung", "DaDat" });
         cboStatus.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        cboStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
         pRight.add(cboStatus);
         pRight.add(Box.createVerticalStrut(10));
 
@@ -113,6 +125,7 @@ public class TablePanel extends JPanel {
         pRight.add(createLabel("Số chỗ ngồi"));
         spnCapacity = new JSpinner(new SpinnerNumberModel(4, 1, 20, 1));
         spnCapacity.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        spnCapacity.setAlignmentX(Component.CENTER_ALIGNMENT);
         pRight.add(spnCapacity);
         pRight.add(Box.createVerticalStrut(10));
 
@@ -120,6 +133,7 @@ public class TablePanel extends JPanel {
         pRight.add(createLabel("Vị trí"));
         txtLocation = new JTextField();
         txtLocation.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        txtLocation.setAlignmentX(Component.CENTER_ALIGNMENT);
         pRight.add(txtLocation);
         pRight.add(Box.createVerticalStrut(20));
 
@@ -127,6 +141,7 @@ public class TablePanel extends JPanel {
         JPanel pButtons = new JPanel(new GridLayout(2, 2, 5, 5));
         pButtons.setBackground(new Color(245, 245, 245));
         pButtons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        pButtons.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton btnAdd = new JButton("Thêm");
         btnAdd.setBackground(new Color(76, 175, 80));
@@ -156,13 +171,14 @@ public class TablePanel extends JPanel {
         // Status change buttons
         JLabel lblQuickStatus = new JLabel("Đổi trạng thái nhanh:");
         lblQuickStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblQuickStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblQuickStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
         pRight.add(lblQuickStatus);
         pRight.add(Box.createVerticalStrut(5));
 
         JPanel pStatus = new JPanel(new GridLayout(1, 3, 5, 0));
         pStatus.setBackground(new Color(245, 245, 245));
         pStatus.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        pStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton btnAvailable = new JButton("Trống");
         btnAvailable.setFont(new Font("Segoe UI", Font.PLAIN, 11));
@@ -184,13 +200,19 @@ public class TablePanel extends JPanel {
         add(pRight, BorderLayout.EAST);
     }
 
-    private JLabel createLabel(String text) {
+    // Helper method to create form labels
+    private JPanel createLabel(String text) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        panel.setBackground(new Color(245, 245, 245));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
         JLabel label = new JLabel(text);
         label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return label;
+        panel.add(label);
+        return panel;
     }
 
+    // Load all tables from database to table
     private void loadData() {
         tableModel.setRowCount(0);
         List<CafeTable> tables = tableService.getAll();
@@ -205,6 +227,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Convert status code to display text
     private String formatStatus(String status) {
         switch (status) {
             case "Trong":
@@ -218,6 +241,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Handle table row selection - populate form with selected data
     private void selectRow() {
         int row = tblTables.getSelectedRow();
         if (row >= 0) {
@@ -237,6 +261,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Clear all form fields and reset selection
     private void clearForm() {
         selectedId = -1;
         txtName.setText("");
@@ -246,6 +271,7 @@ public class TablePanel extends JPanel {
         tblTables.clearSelection();
     }
 
+    // Get CafeTable object from form fields
     private CafeTable getFormData() {
         CafeTable table = new CafeTable();
         table.setId(selectedId);
@@ -256,6 +282,7 @@ public class TablePanel extends JPanel {
         return table;
     }
 
+    // Add new table to database
     private void add() {
         try {
             CafeTable table = getFormData();
@@ -268,6 +295,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Update existing table in database
     private void update() {
         if (selectedId < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn bàn cần sửa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -284,6 +312,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Delete selected table from database
     private void delete() {
         if (selectedId < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn bàn cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -303,6 +332,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Search tables by keyword
     private void search() {
         String keyword = txtSearch.getText().trim();
         tableModel.setRowCount(0);
@@ -318,6 +348,7 @@ public class TablePanel extends JPanel {
         }
     }
 
+    // Quick change table status
     private void changeStatus(String status) {
         if (selectedId < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn bàn!", "Thông báo", JOptionPane.WARNING_MESSAGE);

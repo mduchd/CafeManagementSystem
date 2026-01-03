@@ -48,7 +48,7 @@ public class MainFrame extends javax.swing.JFrame {
         pContent.add(createPlaceholderPanel("Quản lý Sản phẩm"), "PRODUCTS");
         pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
         pContent.add(createPlaceholderPanel("Thống kê"), "STATS");
-        pContent.add(createPlaceholderPanel("Quản lý Nhân viên"), "EMPLOYEES");
+        pContent.add(new com.cafe.view.employee.EmployeePanel(), "EMPLOYEES");
 
         // Style sidebar
         pSidebar.setBackground(SIDEBAR_BG);
