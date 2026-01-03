@@ -554,12 +554,36 @@ searchProduct();
     }//GEN-LAST:event_txtPriceActionPerformed
 
     private void lblHinhAnhMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblHinhAnhMouseClicked
-    JFileChooser fileChooser = new JFileChooser("src/icon/"); // Trỏ vào thư mục icon của dự án
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setDialogTitle("Chọn ảnh sản phẩm");
+    
+    // Filter chỉ hiển thị file ảnh
+    fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+        "Image files", "jpg", "jpeg", "png", "gif"));
+    
     if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-        File file = fileChooser.getSelectedFile();
-        // Lưu chỉ tên file vào ToolTipText để lưu vào Database
-        lblHinhAnh.setToolTipText(file.getName());
-        displayImage(file.getName());
+        File sourceFile = fileChooser.getSelectedFile();
+        File destFile = new File("src/icon/" + sourceFile.getName());
+        
+        try {
+            // Tạo thư mục nếu chưa có
+            if (!destFile.getParentFile().exists()) {
+                destFile.getParentFile().mkdirs();
+            }
+            
+            // Copy file ảnh vào thư mục src/icon/
+            Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Đã copy ảnh: " + sourceFile.getAbsolutePath() + " -> " + destFile.getAbsolutePath());
+            
+            // Lưu tên file vào ToolTipText để lưu vào Database
+            lblHinhAnh.setToolTipText(sourceFile.getName());
+            displayImage(sourceFile.getName());
+            
+            JOptionPane.showMessageDialog(this, "Đã thêm ảnh: " + sourceFile.getName());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi copy ảnh: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     }//GEN-LAST:event_lblHinhAnhMouseClicked

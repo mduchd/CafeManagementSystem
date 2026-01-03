@@ -61,6 +61,13 @@ public class SalesPanel extends javax.swing.JPanel {
         btnJuice.setText("Nước");
         btnCake.setText("Bánh");
 
+        // 2b) Setup filter button events
+        btnAll.addActionListener(e -> filterMenuByCategory(null));        // Tất cả
+        btnCoffee.addActionListener(e -> filterMenuByCategory("Cà phê")); // Cà phê
+        btnTea.addActionListener(e -> filterMenuByCategory("Trà"));       // Trà
+        btnJuice.addActionListener(e -> filterMenuByCategory("Nước ngọt")); // Nước
+        btnCake.addActionListener(e -> filterMenuByCategory("Bánh"));     // Bánh
+
         // 3) Customize bill header labels
         jLabel1.setText("Chưa chọn bàn");
         jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
@@ -286,6 +293,11 @@ public class SalesPanel extends javax.swing.JPanel {
     // ==================== MENU MANAGEMENT (from HEAD) ====================
 
     public void refreshMenu() {
+        filterMenuByCategory(null); // Mặc định hiển thị tất cả
+    }
+
+    // Lọc menu theo danh mục
+    private void filterMenuByCategory(String category) {
         if (pMenuItems != null) {
             pMenuItems.removeAll();
 
@@ -293,11 +305,17 @@ public class SalesPanel extends javax.swing.JPanel {
 
             for (Product product : products) {
                 String status = product.getStatus();
-                if ("DangBan".equals(status) || "Đang bán".equals(status) || "1".equals(status)) {
+                boolean isActive = "DangBan".equals(status) || "Đang bán".equals(status) || "1".equals(status);
+                
+                // Kiểm tra category (null = tất cả)
+                boolean matchCategory = (category == null) || category.equalsIgnoreCase(product.getCategory());
+                
+                if (isActive && matchCategory) {
                     JButton btn = createMenuItemButton(
                         product.getName(),
                         String.format("%.0fđ", product.getPrice()),
-                        product.getCategory()
+                        product.getCategory(),
+                        product.getImage()
                     );
                     pMenuItems.add(btn);
                 }
@@ -308,38 +326,96 @@ public class SalesPanel extends javax.swing.JPanel {
         }
     }
 
-    private JButton createMenuItemButton(String name, String price, String category) {
+    private JButton createMenuItemButton(String name, String price, String category, String imagePath) {
         JButton btn = new JButton();
-        btn.setLayout(new BorderLayout(5, 5));
-        btn.setPreferredSize(new Dimension(140, 90));
-        btn.setMinimumSize(new Dimension(140, 90));
-        btn.setMaximumSize(new Dimension(140, 90));
+        btn.setLayout(new BorderLayout(0, 5));
+        btn.setPreferredSize(new Dimension(160, 150));
+        btn.setMinimumSize(new Dimension(160, 150));
+        btn.setMaximumSize(new Dimension(160, 150));
         btn.setFocusPainted(false);
+        btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+            javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
 
-        JLabel lblName = new JLabel(name, SwingConstants.CENTER);
-        lblName.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        // Tạo label chứa ảnh ở giữa - chiếm toàn bộ phần trên
+        JLabel lblImage = new JLabel();
+        lblImage.setHorizontalAlignment(SwingConstants.CENTER);
+        lblImage.setVerticalAlignment(SwingConstants.CENTER);
+        
+        // Load và scale ảnh - kích thước lớn hơn (100x100)
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                java.io.File imgFile = new java.io.File(imagePath);
+                
+                if (!imgFile.exists()) {
+                    imgFile = new java.io.File("src/icon/" + imagePath);
+                }
+                if (!imgFile.exists()) {
+                    imgFile = new java.io.File("images/" + imagePath);
+                }
+                if (!imgFile.exists()) {
+                    imgFile = new java.io.File("src/images/" + imagePath);
+                }
+                
+                if (imgFile.exists()) {
+                    ImageIcon originalIcon = new ImageIcon(imgFile.getAbsolutePath());
+                    Image scaledImg = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                    lblImage.setIcon(new ImageIcon(scaledImg));
+                } else {
+                    lblImage.setText("📦");
+                    lblImage.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 50));
+                }
+            } catch (Exception e) {
+                lblImage.setText("📦");
+                lblImage.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 50));
+            }
+        } else {
+            lblImage.setText("📦");
+            lblImage.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 50));
+        }
+
+        // Panel dưới cùng chứa tên (dòng 1) và giá (dòng 2) - căn giữa
+        JPanel bottomPanel = new JPanel(new GridLayout(2, 1, 0, 2));
+        bottomPanel.setOpaque(false);
+
+        // Rút gọn tên nếu quá dài (max 14 ký tự để hiển thị đủ "...")
+        String displayName = name;
+        
+
+        JLabel lblName = new JLabel(displayName, SwingConstants.CENTER);
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblName.setForeground(new Color(50, 50, 50));
+        lblName.setToolTipText(name); // Hiển thị tên đầy đủ khi hover
 
         JLabel lblPrice = new JLabel(price, SwingConstants.CENTER);
-        lblPrice.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblPrice.setForeground(new Color(52, 152, 219));
+        lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblPrice.setForeground(new Color(231, 76, 60)); // Màu đỏ nổi bật
 
-        JPanel textPanel = new JPanel(new GridLayout(2, 1));
-        textPanel.setOpaque(false);
-        textPanel.add(lblName);
-        textPanel.add(lblPrice);
+        bottomPanel.add(lblName);
+        bottomPanel.add(lblPrice);
 
-        btn.add(textPanel, BorderLayout.CENTER);
+        // Thêm components vào button
+        btn.add(lblImage, BorderLayout.CENTER);  // Ảnh chiếm phần giữa (lớn)
+        btn.add(bottomPanel, BorderLayout.SOUTH); // Tên + Giá ở dưới
 
         Color bgColor = new Color(255, 255, 255);
         btn.setBackground(bgColor);
-        btn.setForeground(Color.WHITE);
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor.brighter());
+                btn.setBackground(new Color(240, 248, 255));
+                btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
+                    javax.swing.BorderFactory.createEmptyBorder(7, 7, 7, 7)
+                ));
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 btn.setBackground(bgColor);
+                btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                    javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)
+                ));
             }
         });
 
@@ -347,6 +423,7 @@ public class SalesPanel extends javax.swing.JPanel {
 
         return btn;
     }
+
 
     // ==================== BILL MANAGEMENT (merged) ====================
 

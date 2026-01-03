@@ -26,7 +26,7 @@ public class ProductDAO {
     // Lấy toàn bộ danh sách sản phẩm
     public List<Product> findAll() {
         List<Product> list = new ArrayList<>();
-        String sql = "SELECT * FROM SanPham";
+        String sql = "SELECT * FROM sanpham";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql);
@@ -44,7 +44,7 @@ public class ProductDAO {
 
     // Thêm sản phẩm mới (Bao gồm cả hình ảnh)
     public boolean insert(Product p) {
-        String sql = "INSERT INTO SanPham (TenSP, LoaiSP, GiaBan, TrangThai, HinhAnh) VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO sanpham (TenSP, LoaiSP, GiaBan, TrangThai, HinhAnh) VALUES (?,?,?,?,?)";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -65,7 +65,7 @@ public class ProductDAO {
 
     // Cập nhật sản phẩm (Bao gồm cả hình ảnh)
     public boolean update(Product p) {
-        String sql = "UPDATE SanPham SET TenSP=?, LoaiSP=?, GiaBan=?, TrangThai=?, HinhAnh=? WHERE MaSP=?";
+        String sql = "UPDATE sanpham SET TenSP=?, LoaiSP=?, GiaBan=?, TrangThai=?, HinhAnh=? WHERE MaSP=?";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -87,7 +87,7 @@ public class ProductDAO {
 
     // Xóa sản phẩm theo mã
     public boolean delete(int id) {
-        String sql = "DELETE FROM SanPham WHERE MaSP=?";
+        String sql = "DELETE FROM sanpham WHERE MaSP=?";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -104,7 +104,7 @@ public class ProductDAO {
     // Lọc theo loại sản phẩm
     public List<Product> findByCategory(String category) {
         List<Product> list = new ArrayList<>();
-        String sql = "SELECT * FROM SanPham WHERE LoaiSP=?";
+        String sql = "SELECT * FROM sanpham WHERE LoaiSP=?";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -124,7 +124,7 @@ public class ProductDAO {
     
     // Tìm kiếm mã sản phẩm theo tên
     public int getProductIdByName(String name) {
-        String sql = "SELECT MaSP FROM SanPham WHERE TenSP = ?";
+        String sql = "SELECT MaSP FROM sanpham WHERE TenSP = ?";
         
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
