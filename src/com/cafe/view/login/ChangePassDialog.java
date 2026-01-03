@@ -115,12 +115,15 @@ public class ChangePassDialog extends javax.swing.JDialog {
         jLabel1.setText("Đổi mật khẩu");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(102, 102, 102));
         jLabel2.setText("Mật khẩu hiện tại");
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(102, 102, 102));
         jLabel3.setText("Mật khẩu mới ");
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(102, 102, 102));
         jLabel4.setText("Nhập lại mật khẩu");
 
         jButton1.setBackground(new java.awt.Color(30, 58, 95));

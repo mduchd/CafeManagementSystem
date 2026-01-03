@@ -159,16 +159,20 @@ public class SalesPanel extends javax.swing.JPanel {
     
     // 10) Setup menu items panel (dùng pMenuArea có sẵn)
     // pMenuArea đã có jScrollPane1 bên trong (từ NetBeans design)
-    // Tạo panel chứa menu items và đặt vào jScrollPane1
+    // Tạo panel chứa menu items với 3 cột cố định, có thể cuộn
     pMenuItems = new JPanel();
-    pMenuItems.setLayout(new GridLayout(0, 3, 10, 10));  // 3 columns, auto rows
+    // Dùng GridLayout với 0 hàng (tự động) và 3 cột
+    pMenuItems.setLayout(new GridLayout(0, 3, 10, 10));
     pMenuItems.setBackground(Color.WHITE);
     
     // Tìm jScrollPane1 và set viewport
-    // jScrollPane1 đã được add vào pMenuArea ở initComponents()
     for (java.awt.Component comp : pMenuArea.getComponents()) {
         if (comp instanceof JScrollPane) {
-            ((JScrollPane) comp).setViewportView(pMenuItems);
+            JScrollPane scrollPane = (JScrollPane) comp;
+            scrollPane.setViewportView(pMenuItems);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
             break;
         }
     }
@@ -227,7 +231,9 @@ public void refreshMenu() {
 private JButton createMenuItemButton(String name, String price, String category) {
     JButton btn = new JButton();
     btn.setLayout(new BorderLayout(5, 5));
-    btn.setPreferredSize(new Dimension(120, 80));
+    btn.setPreferredSize(new Dimension(140, 90));  // Kích thước cố định
+    btn.setMinimumSize(new Dimension(140, 90));
+    btn.setMaximumSize(new Dimension(140, 90));
     btn.setFocusPainted(false);
     
     // Label tên món
@@ -484,9 +490,9 @@ private void printInvoice(int orderId, Order order) {
     // Tạo nội dung hóa đơn
     StringBuilder invoice = new StringBuilder();
     invoice.append("===========================================\n");
-    invoice.append("           QUÁN CAFE JAVA\n");
-    invoice.append("       Địa chỉ: 123 Đường Nguyễn Trãi\n");
-    invoice.append("         ĐT: 0123456789\n");
+    invoice.append("QUÁN CAFE JAVA\n");
+    invoice.append("123 Đường Nguyễn Trãi\n");
+    invoice.append("ĐT: 0123456789\n");
     invoice.append("===========================================\n\n");
     invoice.append("Hóa đơn số: ").append(orderId).append("\n");
     invoice.append("Ngày: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(order.getCreatedDate())).append("\n");
