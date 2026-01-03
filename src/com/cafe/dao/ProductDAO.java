@@ -119,4 +119,26 @@ public class ProductDAO {
         }
         return list;
     }
+    
+    /**
+     * Lấy ID sản phẩm theo tên
+     */
+    public int getProductIdByName(String name) {
+        String sql = "SELECT MaSP FROM SanPham WHERE TenSP = ?";
+        
+        try (Connection c = DatabaseConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("MaSP");
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;  // Not found
+    }
 }
