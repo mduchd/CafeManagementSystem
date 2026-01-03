@@ -3,6 +3,7 @@ package com.cafe.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException; // Đảm bảo sử dụng thư viện chuẩn này
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,18 @@ import com.cafe.model.Product;
 
 public class ProductDAO {
 
-    // Lấy danh sách sản phẩm
+    private Product readFromResultSet(ResultSet rs) throws SQLException {
+        Product p = new Product();
+        p.setId(rs.getInt("MaSP"));
+        p.setName(rs.getString("TenSP"));
+        p.setCategory(rs.getString("LoaiSP"));
+        p.setPrice(rs.getDouble("GiaBan"));
+        p.setStatus(rs.getString("TrangThai"));
+        p.setImage(rs.getString("HinhAnh")); 
+        return p;
+    }
+
+    // Lấy toàn bộ danh sách sản phẩm
     public List<Product> findAll() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM SanPham";
@@ -21,13 +33,7 @@ public class ProductDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getInt("MaSP"));
-                p.setName(rs.getString("TenSP"));
-                p.setCategory(rs.getString("LoaiSP"));
-                p.setPrice(rs.getDouble("GiaBan"));
-                p.setStatus(rs.getString("TrangThai"));
-                list.add(p);
+                list.add(readFromResultSet(rs));
             }
 
         } catch (Exception e) {
@@ -36,9 +42,9 @@ public class ProductDAO {
         return list;
     }
 
-    // Thêm sản phẩm
+    // Thêm sản phẩm mới (Bao gồm cả hình ảnh)
     public boolean insert(Product p) {
-        String sql = "INSERT INTO SanPham (TenSP, LoaiSP, GiaBan, TrangThai) VALUES (?,?,?,?)";
+        String sql = "INSERT INTO SanPham (TenSP, LoaiSP, GiaBan, TrangThai, HinhAnh) VALUES (?,?,?,?,?)";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -47,6 +53,7 @@ public class ProductDAO {
             ps.setString(2, p.getCategory());
             ps.setDouble(3, p.getPrice());
             ps.setString(4, p.getStatus());
+            ps.setString(5, p.getImage());
 
             return ps.executeUpdate() > 0;
 
@@ -56,9 +63,9 @@ public class ProductDAO {
         return false;
     }
 
-    // Cập nhật sản phẩm
+    // Cập nhật sản phẩm (Bao gồm cả hình ảnh)
     public boolean update(Product p) {
-        String sql = "UPDATE SanPham SET TenSP=?, LoaiSP=?, GiaBan=?, TrangThai=? WHERE MaSP=?";
+        String sql = "UPDATE SanPham SET TenSP=?, LoaiSP=?, GiaBan=?, TrangThai=?, HinhAnh=? WHERE MaSP=?";
 
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -67,7 +74,8 @@ public class ProductDAO {
             ps.setString(2, p.getCategory());
             ps.setDouble(3, p.getPrice());
             ps.setString(4, p.getStatus());
-            ps.setInt(5, p.getId());
+            ps.setString(5, p.getImage());
+            ps.setInt(6, p.getId());
 
             return ps.executeUpdate() > 0;
 
@@ -77,7 +85,7 @@ public class ProductDAO {
         return false;
     }
 
-    // Xóa sản phẩm
+    // Xóa sản phẩm theo mã
     public boolean delete(int id) {
         String sql = "DELETE FROM SanPham WHERE MaSP=?";
 
@@ -93,7 +101,7 @@ public class ProductDAO {
         return false;
     }
 
-    // (Optional) Lọc theo loại sản phẩm
+    // Lọc theo loại sản phẩm
     public List<Product> findByCategory(String category) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM SanPham WHERE LoaiSP=?";
@@ -102,16 +110,10 @@ public class ProductDAO {
              PreparedStatement ps = c.prepareStatement(sql)) {
 
             ps.setString(1, category);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getInt("MaSP"));
-                p.setName(rs.getString("TenSP"));
-                p.setCategory(rs.getString("LoaiSP"));
-                p.setPrice(rs.getDouble("GiaBan"));
-                p.setStatus(rs.getString("TrangThai"));
-                list.add(p);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(readFromResultSet(rs));
+                }
             }
 
         } catch (Exception e) {
@@ -120,9 +122,7 @@ public class ProductDAO {
         return list;
     }
     
-    /**
-     * Lấy ID sản phẩm theo tên
-     */
+    // Tìm kiếm mã sản phẩm theo tên
     public int getProductIdByName(String name) {
         String sql = "SELECT MaSP FROM SanPham WHERE TenSP = ?";
         
@@ -130,15 +130,15 @@ public class ProductDAO {
              PreparedStatement ps = c.prepareStatement(sql)) {
             
             ps.setString(1, name);
-            ResultSet rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt("MaSP");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("MaSP");
+                }
             }
             
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return -1;  // Not found
+        return -1; 
     }
 }
