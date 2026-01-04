@@ -27,14 +27,47 @@ public class ProductPanel extends javax.swing.JPanel {
     tableModel = (DefaultTableModel) tblProduct.getModel();
     loadTable();
     
+    // Load icons cho buttons (như ban đầu)
     try {
         btnAdd.setIcon(com.cafe.service.XImage.getResizedIcon("add.png", 20, 20));
         btnUpdate.setIcon(com.cafe.service.XImage.getResizedIcon("edit.png", 20, 20));
         btnDelete.setIcon(com.cafe.service.XImage.getResizedIcon("delete.png", 20, 20));
         btnSearch.setIcon(com.cafe.service.XImage.getResizedIcon("search.png", 20, 20));
     } catch (Exception e) {
-        System.err.println("Lỗi load icon nút bấm: " + e.getMessage());
+        System.err.println("Lỗi load icon: " + e.getMessage());
     }
+    
+    // 2. Styling cho tiêu đề
+    jLabel1.setOpaque(true);
+    jLabel1.setBackground(new java.awt.Color(52, 73, 94));
+    jLabel1.setForeground(java.awt.Color.WHITE);
+    jLabel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 15, 10, 15));
+    
+    jLabel2.setOpaque(true);
+    jLabel2.setBackground(new java.awt.Color(46, 204, 113));
+    jLabel2.setForeground(java.awt.Color.WHITE);
+    jLabel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    
+    jLabel8.setOpaque(true);
+    jLabel8.setBackground(new java.awt.Color(52, 152, 219));
+    jLabel8.setForeground(java.awt.Color.WHITE);
+    jLabel8.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    
+    // 3. Styling cho bảng
+    tblProduct.setRowHeight(28);
+    tblProduct.getTableHeader().setBackground(new java.awt.Color(52, 73, 94));
+    tblProduct.getTableHeader().setForeground(java.awt.Color.WHITE);
+    tblProduct.getTableHeader().setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+    tblProduct.setSelectionBackground(new java.awt.Color(52, 152, 219));
+    tblProduct.setSelectionForeground(java.awt.Color.WHITE);
+    tblProduct.setGridColor(new java.awt.Color(220, 220, 220));
+    
+    // 4. Styling cho ô hình ảnh
+    lblHinhAnh.setBackground(new java.awt.Color(245, 245, 245));
+    lblHinhAnh.setOpaque(true);
+    lblHinhAnh.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+    lblHinhAnh.setText("Click để chọn ảnh");
+    lblHinhAnh.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 11));
 }
 
     // --- CÁC HÀM SỬA LỖI ---
@@ -557,32 +590,29 @@ searchProduct();
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setDialogTitle("Chọn ảnh sản phẩm");
     
-    // Filter chỉ hiển thị file ảnh
+    // Filter hiển thị file ảnh (nhưng vẫn cho phép xem tất cả file)
     fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-        "Image files", "jpg", "jpeg", "png", "gif"));
+        "Image files (*.jpg, *.png, *.gif)", "jpg", "jpeg", "png", "gif"));
+    fileChooser.setAcceptAllFileFilterUsed(true);  // Cho phép chọn "All Files"
     
     if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
         File sourceFile = fileChooser.getSelectedFile();
-        File destFile = new File("src/icon/" + sourceFile.getName());
+        String fileName = sourceFile.getName();
+        File destFile = new File("src/icon/" + fileName);
         
         try {
-            // Tạo thư mục nếu chưa có
-            if (!destFile.getParentFile().exists()) {
-                destFile.getParentFile().mkdirs();
+            // Chỉ copy nếu file chưa tồn tại
+            if (!destFile.exists()) {
+                if (!destFile.getParentFile().exists()) {
+                    destFile.getParentFile().mkdirs();
+                }
+                Files.copy(sourceFile.toPath(), destFile.toPath());
             }
             
-            // Copy file ảnh vào thư mục src/icon/
-            Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("Đã copy ảnh: " + sourceFile.getAbsolutePath() + " -> " + destFile.getAbsolutePath());
-            
-            // Lưu tên file vào ToolTipText để lưu vào Database
-            lblHinhAnh.setToolTipText(sourceFile.getName());
-            displayImage(sourceFile.getName());
-            
-            JOptionPane.showMessageDialog(this, "Đã thêm ảnh: " + sourceFile.getName());
+            lblHinhAnh.setToolTipText(fileName);
+            displayImage(fileName);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi copy ảnh: " + ex.getMessage());
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
         }
     }
 
