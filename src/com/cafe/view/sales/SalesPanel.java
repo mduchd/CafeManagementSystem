@@ -48,6 +48,20 @@ public class SalesPanel extends javax.swing.JPanel {
     }
 
     private void initLogic() {
+        // 0) Khởi tạo buttons nếu chưa có (fix lỗi mất nút)
+        if (btnCheckout == null) {
+            btnCheckout = new javax.swing.JButton("THANH TOÁN");
+        }
+        if (btnCancel == null) {
+            btnCancel = new javax.swing.JButton("HỦY");
+        }
+        
+        // Thêm buttons vào panel nếu chưa có
+        if (pBillBottom != null && btnCheckout.getParent() == null) {
+            pBillBottom.add(btnCancel);
+            pBillBottom.add(btnCheckout);
+        }
+        
         // 1) Load tables from database and setup dynamic table grid
         loadTablesFromDatabase();
 
