@@ -22,7 +22,7 @@ public class ProductService {
     }
 
     // Thêm sản phẩm mới
-    public boolean addProduct(Product p) {
+    public boolean insertProduct(Product p) {
         if (!validateProduct(p)) {
             return false;
         }
@@ -54,10 +54,6 @@ public class ProductService {
         return true;
     }
     
-    /**
-     * Lấy ID sản phẩm theo tên
-     * Dùng cho việc tạo hóa đơn từ SalesPanel
-     */
     public int getProductIdByName(String name) {
         return productDAO.getProductIdByName(name);
     }
