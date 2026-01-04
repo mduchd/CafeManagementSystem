@@ -113,6 +113,7 @@ public class ImportDialog extends javax.swing.JDialog {
     private void btnInventoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInventoryActionPerformed
         // TODO add your handling code here:
         
+        
     }//GEN-LAST:event_btnInventoryActionPerformed
 
     /**

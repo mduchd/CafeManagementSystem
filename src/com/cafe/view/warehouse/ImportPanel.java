@@ -4,7 +4,7 @@
  */
 package com.cafe.view.warehouse;
 
-import javax.swing.table.DefaultTableModel;
+
 import com.cafe.database.DBConnection;
 import java.sql.*;
 import javax.swing.JOptionPane;
