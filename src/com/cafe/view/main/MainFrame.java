@@ -4,9 +4,9 @@ package com.cafe.view.main;
 import com.cafe.view.sales.SalesPanel;
 import com.cafe.view.product.ProductPanel;
 import com.cafe.service.UserSession;
-import com.cafe.view.statistics.StatsPanel; 
+import com.cafe.view.statistics.StatsPanel;
+import com.cafe.view.warehouse.ImportDialog;
 
->>>>>>> 6d764c0772989544b92bbb24961ccef5407e5e83
 /**
  *
  * @author Owner
@@ -70,20 +70,16 @@ public class MainFrame extends javax.swing.JFrame {
 //        setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
         setupMenuButton(btnStats, "Thống kê", "STATS");
         setupMenuButton(btnEmployee, "Nhân viên", "EMPLOYEES");
-<<<<<<< HEAD
+        setupMenuButton(btnAccount, "Tài khoản", "ACCOUNTS");
+        
+        // Setup Warehouse button
         btnWarehouse.setText("Kho");
         btnWarehouse.setForeground(java.awt.Color.WHITE);
         btnWarehouse.setBackground(SIDEBAR_BG);
         btnWarehouse.setFocusPainted(false);
         btnWarehouse.setBorderPainted(false);
         btnWarehouse.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-
         btnWarehouse.addActionListener(e -> openImportDialog());
-        
-=======
-        setupMenuButton(btnAccount, "Tài khoản", "ACCOUNTS");
-
->>>>>>> 6d764c0772989544b92bbb24961ccef5407e5e83
         // Setup role indicator panel at bottom of sidebar
         setupRoleIndicatorPanel();
 
@@ -404,16 +400,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel pMenu;
     private javax.swing.JPanel pSidebar;
     // End of variables declaration//GEN-END:variables
-<<<<<<< HEAD
 
     private void openImportDialog() {
-
-    ImportDialog dialog = new ImportDialog(this, true); // this = MainFrame
-    dialog.setLocationRelativeTo(this);
-    dialog.setVisible(true);
+        ImportDialog dialog = new ImportDialog(this, true);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
 }
-    
-}
-=======
-}
->>>>>>> 6d764c0772989544b92bbb24961ccef5407e5e83
