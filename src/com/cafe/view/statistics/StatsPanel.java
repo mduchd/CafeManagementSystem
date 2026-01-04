@@ -17,6 +17,8 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.text.MessageFormat; // Để tạo tiêu đề khi in
+import javax.swing.JTable;      // Để dùng tính năng in của bảng
 /**
  *
  * @author Owner
@@ -97,6 +99,20 @@ public class StatsPanel extends javax.swing.JPanel {
             loadStatisticsData(); // Gọi hàm xử lý logic
         });
         filterPanel.add(btnThongKe);
+        
+        JButton btnPrint = new JButton("In báo cáo");
+        btnPrint.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnPrint.setBackground(new Color(46, 204, 113)); // Màu xanh lá cây cho nổi bật
+        btnPrint.setForeground(Color.WHITE);
+        btnPrint.setFocusPainted(false);
+        btnPrint.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Sự kiện khi bấm nút In
+        btnPrint.addActionListener((ActionEvent e) -> {
+            printReport(); // Gọi hàm in (chúng ta sẽ viết hàm này ngay bên dưới)
+        });
+        
+        filterPanel.add(btnPrint); // Thêm nút In vào panel
 
         // --- CÁC THẺ THỐNG KÊ (CARDS) ---
         JPanel cardsPanel = new JPanel(new GridLayout(1, 3, 30, 0));
@@ -128,6 +144,33 @@ public class StatsPanel extends javax.swing.JPanel {
         mainPanel.add(scrollPane, BorderLayout.CENTER);
     }
     
+    // --- HÀM XỬ LÝ IN ẤN ---
+    private void printReport() {
+        // 1. Kiểm tra xem bảng có dữ liệu chưa
+        if (table.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Chưa có dữ liệu để in! Vui lòng bấm Thống kê trước.");
+            return;
+        }
+
+        try {
+            // 2. Tạo tiêu đề và chân trang cho bản in
+            MessageFormat header = new MessageFormat("Báo cáo Doanh thu - Java Coffee");
+            MessageFormat footer = new MessageFormat("Trang {0,number,integer}");
+
+            // 3. Gọi lệnh in mặc định của Java Swing
+            // FIT_WIDTH: Tự động co bảng lại cho vừa khổ giấy A4
+            boolean complete = table.print(JTable.PrintMode.FIT_WIDTH, header, footer);
+
+            if (complete) {
+                JOptionPane.showMessageDialog(this, "Đã in thành công!");
+            } else {
+                JOptionPane.showMessageDialog(this, "Đã hủy lệnh in.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi in: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
     private void loadStatisticsData() {
         String sFrom = txtFromDate.getText().trim();
         String sTo = txtToDate.getText().trim();
