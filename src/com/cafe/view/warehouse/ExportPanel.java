@@ -14,6 +14,8 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ExportPanel extends javax.swing.JPanel {
     DefaultTableModel model;
+    private int stockExport = 0;
+    
 
     /**
      * Creates new form ExportPanel
@@ -23,6 +25,7 @@ public class ExportPanel extends javax.swing.JPanel {
         initTable();
         loadIngredient();
         loadExport();
+        
     }
 
     /**
@@ -43,6 +46,8 @@ public class ExportPanel extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         tblExport = new javax.swing.JTable();
         txtQuantity = new javax.swing.JTextField();
+        lblStockExport = new javax.swing.JLabel();
+        txtStockExport = new javax.swing.JButton();
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("Xuất nguyên liệu");
@@ -54,7 +59,12 @@ public class ExportPanel extends javax.swing.JPanel {
         jLabel3.setText("Số lượng xuất");
 
         cbIngredient.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        cbIngredient.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cbIngredient.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cà phê bột", "Cà phê hạt", "Đường", "Bột Béo", "Sữa tươi", "Sữa đặc", "Kem béo(Rich)", "Siro", "Mứt/sốt trái cây", " ", " " }));
+        cbIngredient.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbIngredientActionPerformed(evt);
+            }
+        });
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel5.setText("Danh sách nguyên liệu xuất");
@@ -81,6 +91,12 @@ public class ExportPanel extends javax.swing.JPanel {
 
         txtQuantity.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
+        lblStockExport.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
+        lblStockExport.setText("Tồn kho hiện tại: ");
+
+        txtStockExport.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        txtStockExport.setEnabled(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -99,7 +115,11 @@ public class ExportPanel extends javax.swing.JPanel {
                                     .addComponent(cbIngredient, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(txtQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(jLabel5)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblStockExport)
+                                .addGap(38, 38, 38)
+                                .addComponent(txtStockExport, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(141, 141, 141)
                         .addComponent(jLabel1))
@@ -130,7 +150,11 @@ public class ExportPanel extends javax.swing.JPanel {
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addGap(27, 27, 27)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStockExport)
+                    .addComponent(txtStockExport, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(102, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {cbIngredient, txtQuantity});
@@ -139,8 +163,35 @@ public class ExportPanel extends javax.swing.JPanel {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        exportIngredient();
+        int qtyExport;
+
+try {
+    qtyExport = Integer.parseInt(txtQuantity.getText());
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(this, "Số lượng xuất không hợp lệ!");
+    return;
+}
+
+if (qtyExport > stockExport) {
+    JOptionPane.showMessageDialog(
+        this,
+        "Không đủ tồn kho! Tồn hiện tại: " + stockExport,
+        "Lỗi",
+        JOptionPane.ERROR_MESSAGE
+    );
+    return;
+}
+
+exportIngredient(qtyExport);
+
+        
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void cbIngredientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbIngredientActionPerformed
+        // TODO add your handling code here:
+        String ingredientName = cbIngredient.getSelectedItem().toString();
+        loadStockExport(ingredientName);
+    }//GEN-LAST:event_cbIngredientActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -151,8 +202,10 @@ public class ExportPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblStockExport;
     private javax.swing.JTable tblExport;
     private javax.swing.JTextField txtQuantity;
+    private javax.swing.JButton txtStockExport;
     // End of variables declaration//GEN-END:variables
 
     private void initTable() {
@@ -208,54 +261,67 @@ public class ExportPanel extends javax.swing.JPanel {
         e.printStackTrace();
     }
     }
+    private void exportIngredient(int qtyExport) {
+    String ingredient = cbIngredient.getSelectedItem().toString();
 
-    private void exportIngredient() {
-        try {
-        String ingredient = cbIngredient.getSelectedItem().toString();
-        int quantity = Integer.parseInt(txtQuantity.getText());
+    String sql = """
+        INSERT INTO tbl_export (ingredient_name, quantity)
+        VALUES (?, ?)
+    """;
 
-        // Lấy supplier_id theo ingredient
-        String getSupplierSql = """
-            SELECT supplier_id
-            FROM tbl_import
-            WHERE ingredient_name = ?
-            LIMIT 1
-        """;
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        int supplierId = 0;
+        ps.setString(1, ingredient);
+        ps.setInt(2, qtyExport); 
+        ps.executeUpdate();
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(getSupplierSql)) {
+        JOptionPane.showMessageDialog(this, "Xuất thành công!");
 
-            ps.setString(1, ingredient);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                supplierId = rs.getInt("supplier_id");
-            }
-        }
-
-        String sql = """
-            INSERT INTO tbl_export
-            (supplier_id, quantity, export_date)
-            VALUES (?, ?, NOW())
-        """;
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, supplierId);
-            ps.setInt(2, quantity);
-            ps.executeUpdate();
-        }
-
-        JOptionPane.showMessageDialog(this, "Xuất nguyên liệu thành công!");
-        loadExport();
-        txtQuantity.setText("");
+        loadExport();                  // reload bảng
+        loadStockExport(ingredient);   // cập nhật tồn
+        txtQuantity.setText("");       // clear ô nhập
 
     } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ!");
+        JOptionPane.showMessageDialog(this, "Lỗi khi xuất!");
+        e.printStackTrace();
+    }
+
+    }
+
+    private void loadStockExport(String ingredientName) {
+String sql = """
+        SELECT 
+            IFNULL(SUM(quantity), 0)
+            -
+            IFNULL((
+                SELECT SUM(quantity)
+                FROM tbl_export
+                WHERE ingredient_name = ?
+            ), 0) AS stock
+        FROM tbl_import
+        WHERE ingredient_name = ?
+    """;
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, ingredientName);
+        ps.setString(2, ingredientName);
+
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            stockExport = rs.getInt("stock");
+            txtStockExport.setText(String.valueOf(stockExport));
+        }
+
+    } catch (Exception e) {
+        stockExport = 0;
+        txtStockExport.setText("0");
+        e.printStackTrace();
+    }   
     }
     }
-}
+    
+
 

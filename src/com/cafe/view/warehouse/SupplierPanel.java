@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class SupplierPanel extends javax.swing.JPanel {
     DefaultTableModel model;
+    int selectedSupplierId = -1; 
 
 
     /**
@@ -47,6 +48,8 @@ public class SupplierPanel extends javax.swing.JPanel {
         tblSupplier = new javax.swing.JTable();
         jLabel5 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
+        btnUpdate = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -84,6 +87,11 @@ public class SupplierPanel extends javax.swing.JPanel {
                 "STT", "Tên NCC", "Địa chỉ", "SDT"
             }
         ));
+        tblSupplier.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblSupplierMouseClicked(evt);
+            }
+        });
         panel.setViewportView(tblSupplier);
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
@@ -97,6 +105,20 @@ public class SupplierPanel extends javax.swing.JPanel {
             }
         });
 
+        btnUpdate.setText("Sửa");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
+
+        btnDelete.setText("Xóa");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout panel1Layout = new javax.swing.GroupLayout(panel1);
         panel1.setLayout(panel1Layout);
         panel1Layout.setHorizontalGroup(
@@ -107,8 +129,12 @@ public class SupplierPanel extends javax.swing.JPanel {
                         .addGap(80, 80, 80)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 304, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(panel1Layout.createSequentialGroup()
-                        .addGap(188, 188, 188)
-                        .addComponent(jButton1)))
+                        .addGap(48, 48, 48)
+                        .addComponent(jButton1)
+                        .addGap(30, 30, 30)
+                        .addComponent(btnUpdate)
+                        .addGap(28, 28, 28)
+                        .addComponent(btnDelete)))
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(panel1Layout.createSequentialGroup()
                 .addGap(34, 34, 34)
@@ -150,7 +176,10 @@ public class SupplierPanel extends javax.swing.JPanel {
                     .addComponent(txtPhone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblPhone))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
+                .addGroup(panel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(btnUpdate)
+                    .addComponent(btnDelete))
                 .addGap(20, 20, 20)
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -172,8 +201,126 @@ public class SupplierPanel extends javax.swing.JPanel {
         addSupplier();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        // TODO add your handling code here:
+        if (selectedSupplierId == -1) {
+        JOptionPane.showMessageDialog(this, "Chọn nhà cung cấp cần sửa");
+        return;
+    }
+
+    String name = txtName.getText();
+    String address = txtAddress.getText();
+    String phone = txtPhone.getText();
+
+    String sql = """
+        UPDATE tbl_supplier
+        SET supplier_name = ?, address = ?, phone = ?
+        WHERE supplier_id = ?
+    """;
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, name);
+        ps.setString(2, address);
+        ps.setString(3, phone);
+        ps.setInt(4, selectedSupplierId);
+        ps.executeUpdate();
+
+        JOptionPane.showMessageDialog(this, "Cập nhật thành công");
+        loadSupplier();
+        clearForm();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    }
+
+    private void clearForm() {
+        txtName.setText("");
+        txtAddress.setText("");
+        txtPhone.setText("");
+        selectedSupplierId = -1;
+        tblSupplier.clearSelection();
+}
+    private void loadSupplier() {
+        model.setRowCount(0);
+        int stt = 1;
+
+        String sql = "SELECT * FROM tbl_supplier";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getInt("supplier_id"),
+                    stt++,
+                    rs.getString("supplier_name"),
+                    rs.getString("address"),
+                    rs.getString("phone")
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void tblSupplierMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblSupplierMouseClicked
+        // TODO add your handling code here:
+        int row = tblSupplier.getSelectedRow();
+        if (row == -1) return;
+
+        selectedSupplierId = Integer.parseInt(
+            model.getValueAt(row, 0).toString()
+        );
+
+        txtName.setText(model.getValueAt(row, 2).toString());
+        txtAddress.setText(model.getValueAt(row, 3).toString());
+        txtPhone.setText(model.getValueAt(row, 4).toString());
+    }//GEN-LAST:event_tblSupplierMouseClicked
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+ if (selectedSupplierId == -1) {
+        JOptionPane.showMessageDialog(this, "Chọn nhà cung cấp cần xóa");
+        return;
+    }
+
+    int confirm = JOptionPane.showConfirmDialog(
+        this,
+        "Bạn có chắc muốn xóa nhà cung cấp này?",
+        "Xác nhận",
+        JOptionPane.YES_NO_OPTION
+    );
+
+    if (confirm != JOptionPane.YES_OPTION) return;
+
+    String sql = "DELETE FROM tbl_supplier WHERE supplier_id = ?";
+
+    try (Connection conn = DBConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, selectedSupplierId);
+        ps.executeUpdate();
+
+        JOptionPane.showMessageDialog(this, "Xóa thành công");
+        loadSupplier();
+        clearForm();
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Không thể xóa! NCC đang được sử dụng."
+        );
+    }
+
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnUpdate;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel5;
@@ -190,49 +337,42 @@ public class SupplierPanel extends javax.swing.JPanel {
 
     private void initTable() {
         model = new DefaultTableModel();
-        model.addColumn("ID");
-        model.addColumn("Tên NCC");
-        model.addColumn("Địa chỉ");
-        model.addColumn("SĐT");
-        tblSupplier.setModel(model);
+    model.addColumn("ID");       // ẩn
+    model.addColumn("STT");
+    model.addColumn("Tên NCC");
+    model.addColumn("Địa chỉ");
+    model.addColumn("SĐT");
+
+    tblSupplier.setModel(model);
+
+    // Ẩn cột ID
+    tblSupplier.getColumnModel().getColumn(0).setMinWidth(0);
+    tblSupplier.getColumnModel().getColumn(0).setMaxWidth(0);
     }
 
-    private void loadSupplier() {
-        model.setRowCount(0);
-
-    String sql = "SELECT * FROM tbl_supplier";
-
-    try (Connection conn = DBConnection.getConnection();
-         Statement st = conn.createStatement();
-         ResultSet rs = st.executeQuery(sql)) {
-
-        while (rs.next()) {
-            model.addRow(new Object[]{
-                rs.getInt("supplier_id"),
-                rs.getString("supplier_name"),
-                rs.getString("address"),
-                rs.getString("phone")
-            });
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    }
+    
 
     private void addSupplier() {
-        String name = txtName.getText();
-        String address = txtAddress.getText();
-        String phone = txtPhone.getText();
+    String name = txtName.getText().trim();
+    String address = txtAddress.getText().trim();
+    String phone = txtPhone.getText().trim();
 
-        if (name.isEmpty() || phone.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Vui lòng nhập đủ thông tin!");
+    if (name.isEmpty() || address.isEmpty() || phone.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Không được để trống");
         return;
     }
 
-        String sql = "INSERT INTO tbl_supplier (supplier_name, address, phone) VALUES (?, ?, ?)";
+    if (!phone.matches("\\d+")) {
+        JOptionPane.showMessageDialog(this, "SĐT chỉ được nhập số");
+        return;
+    }
 
-        try (Connection conn = DBConnection.getConnection();
+    String sql = """
+        INSERT INTO tbl_supplier (supplier_name, address, phone)
+        VALUES (?, ?, ?)
+    """;
+
+    try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement(sql)) {
 
         ps.setString(1, name);
@@ -240,17 +380,14 @@ public class SupplierPanel extends javax.swing.JPanel {
         ps.setString(3, phone);
         ps.executeUpdate();
 
-        JOptionPane.showMessageDialog(this, "Thêm NCC thành công!");
+        JOptionPane.showMessageDialog(this, "Thêm nhà cung cấp thành công");
         loadSupplier();
         clearForm();
 
-        } catch (Exception e) {
+    } catch (Exception e) {
         e.printStackTrace();
-        }    }
-
-    private void clearForm() {
-        txtName.setText("");
-        txtAddress.setText("");
-        txtPhone.setText("");
     }
 }
+}
+
+    

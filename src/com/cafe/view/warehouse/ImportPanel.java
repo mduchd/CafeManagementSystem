@@ -14,14 +14,19 @@ import javax.swing.table.DefaultTableModel;
  * @author Le Diu
  */
 public class ImportPanel extends javax.swing.JPanel {
+    int selectedImportId = -1;
+    int selectedIngredientId = -1;
+    int selectedQuantity = 0;
     DefaultTableModel model;
     /**
      * Creates new form ImportPanel
      */
     public ImportPanel() {
         initComponents();
+        
         initTable();
         loadSupplier();
+        txtStock.setEditable(false);
     }
 
     /**
@@ -46,6 +51,10 @@ public class ImportPanel extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         tblImport = new javax.swing.JTable();
         cbSupplier = new javax.swing.JComboBox<>();
+        btnDelete = new javax.swing.JButton();
+        btnReset = new javax.swing.JButton();
+        lblStock = new javax.swing.JLabel();
+        txtStock = new javax.swing.JTextField();
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("Nhập nguyên liệu");
@@ -64,6 +73,11 @@ public class ImportPanel extends javax.swing.JPanel {
 
         cbIngredient.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         cbIngredient.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cà phê bột", "Cà phê hạt", "Đường", "Bột Béo", "Sữa tươi", "Sữa đặc", "Kem béo(Rich)", "Siro", "Mứt/sốt trái cây", " ", " " }));
+        cbIngredient.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbIngredientActionPerformed(evt);
+            }
+        });
 
         txtQuantity.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
@@ -90,9 +104,33 @@ public class ImportPanel extends javax.swing.JPanel {
                 "STT", "Nguyên liệu", "Số lượng", "Đơn giá", "Nhà cung cấp"
             }
         ));
+        tblImport.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblImportMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblImport);
 
         cbSupplier.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
+        btnDelete.setText("Xóa");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
+
+        btnReset.setText("Làm mới");
+        btnReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResetActionPerformed(evt);
+            }
+        });
+
+        lblStock.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
+        lblStock.setText("Tồn kho hiện tại: ");
+
+        txtStock.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -101,24 +139,33 @@ public class ImportPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(50, 50, 50)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 402, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel4))
-                        .addGap(30, 30, 30)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(cbIngredient, 0, 195, Short.MAX_VALUE)
-                            .addComponent(txtQuantity)
-                            .addComponent(txtPrice)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(23, 23, 23)
-                                .addComponent(btnSave))
-                            .addComponent(cbSupplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel6))
+                        .addComponent(lblStock)
+                        .addGap(18, 18, 18)
+                        .addComponent(txtStock, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 402, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel3)
+                                .addComponent(jLabel2)
+                                .addComponent(jLabel5)
+                                .addComponent(jLabel4))
+                            .addGap(30, 30, 30)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel1)
+                                .addComponent(cbIngredient, 0, 195, Short.MAX_VALUE)
+                                .addComponent(txtQuantity)
+                                .addComponent(txtPrice)
+                                .addComponent(cbSupplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createSequentialGroup()
+                            .addGap(26, 26, 26)
+                            .addComponent(btnSave)
+                            .addGap(30, 30, 30)
+                            .addComponent(btnReset)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnDelete))))
                 .addContainerGap(133, Short.MAX_VALUE))
         );
 
@@ -145,13 +192,20 @@ public class ImportPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(cbSupplier, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(btnSave)
                 .addGap(24, 24, 24)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSave)
+                    .addComponent(btnDelete)
+                    .addComponent(btnReset))
+                .addGap(39, 39, 39)
                 .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(55, 55, 55))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStock)
+                    .addComponent(txtStock, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(98, 98, 98))
         );
 
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {cbIngredient, cbSupplier, txtPrice, txtQuantity});
@@ -161,10 +215,93 @@ public class ImportPanel extends javax.swing.JPanel {
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
         addImport();
+        
     }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+        if (selectedImportId == -1) {
+        JOptionPane.showMessageDialog(this, "Chọn dòng cần xóa");
+        return;
+    }
+
+    int confirm = JOptionPane.showConfirmDialog(
+        this,
+        "Xóa lần nhập này và trừ kho lại?",
+        "Xác nhận",
+        JOptionPane.YES_NO_OPTION
+    );
+
+    if (confirm != JOptionPane.YES_OPTION) return;
+
+    String deleteImport = "DELETE FROM tbl_import WHERE import_id = ?";
+    String updateStock = """
+        UPDATE tbl_ingredient
+        SET quantity = quantity - ?
+        WHERE ingredient_id = ?
+    """;
+
+    try (Connection conn = DBConnection.getConnection()) {
+        conn.setAutoCommit(false);
+
+        PreparedStatement ps1 = conn.prepareStatement(deleteImport);
+        ps1.setInt(1, selectedImportId);
+        ps1.executeUpdate();
+
+        PreparedStatement ps2 = conn.prepareStatement(updateStock);
+        ps2.setInt(1, selectedQuantity);
+        ps2.setInt(2, selectedIngredientId);
+        ps2.executeUpdate();
+
+        conn.commit();
+
+        JOptionPane.showMessageDialog(this, "Xóa thành công");
+        loadImport();
+        btnResetActionPerformed(null);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
+        // TODO add your handling code here:
+        cbIngredient.setSelectedIndex(0);
+        cbSupplier.setSelectedIndex(0);
+        txtQuantity.setText("");
+        txtPrice.setText("");
+        tblImport.clearSelection();
+    }//GEN-LAST:event_btnResetActionPerformed
+
+    private void tblImportMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblImportMouseClicked
+        // TODO add your handling code here:
+        int row = tblImport.getSelectedRow();
+    if (row == -1) return;
+
+    selectedImportId = Integer.parseInt(
+        model.getValueAt(row, 0).toString()
+    );
+    selectedIngredientId = Integer.parseInt(
+        model.getValueAt(row, 1).toString()
+    );
+    selectedQuantity = Integer.parseInt(
+        model.getValueAt(row, 3).toString()
+    );
+    }//GEN-LAST:event_tblImportMouseClicked
+
+    private void cbIngredientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbIngredientActionPerformed
+        // TODO add your handling code here:
+         String ingredientName = cbIngredient.getSelectedItem().toString();
+
+    System.out.println("Đã chọn: " + ingredientName);
+
+    loadTonKho(ingredientName);
+    }//GEN-LAST:event_cbIngredientActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSave;
     private javax.swing.JComboBox<String> cbIngredient;
     private javax.swing.JComboBox<String> cbSupplier;
@@ -175,9 +312,11 @@ public class ImportPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblStock;
     private javax.swing.JTable tblImport;
     private javax.swing.JTextField txtPrice;
     private javax.swing.JTextField txtQuantity;
+    private javax.swing.JTextField txtStock;
     // End of variables declaration//GEN-END:variables
 
     private void initTable() {
@@ -293,6 +432,75 @@ public class ImportPanel extends javax.swing.JPanel {
         cbIngredient.setSelectedIndex(0);
         cbSupplier.setSelectedIndex(0);
     }
+    private int getStockByIngredient(int ingredientId) {
+    String sql = """
+        SELECT
+            COALESCE(SUM(i.quantity), 0)
+            - COALESCE((
+                SELECT SUM(e.quantity)
+                FROM tbl_export e
+                WHERE e.ingredient_id = ?
+            ), 0) AS stock
+        FROM tbl_import i
+        WHERE i.ingredient_id = ?
+    """;
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setInt(1, ingredientId);
+        ps.setInt(2, ingredientId);
+
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("stock");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+class IngredientItem {
+    int id;
+    String name;
+
+    @Override
+    public String toString() {
+        return name;
+    }
+}
+
+private void loadTonKho(String ingredientName) {
+    String sql = "SELECT IFNULL(SUM(quantity), 0) AS ton_kho "
+               + "FROM tbl_import WHERE ingredient_name = ?";
+
+    try {
+        Connection conn = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/cafe_management",
+            "root",
+            ""
+        );
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, ingredientName);
+
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            txtStock.setText(rs.getInt("ton_kho") + "");
+        }
+
+        rs.close();
+        ps.close();
+        conn.close();
+
+    } catch (Exception e) {
+        txtStock.setText("0");
+    }
+}
+
+
+
 
     }
 
