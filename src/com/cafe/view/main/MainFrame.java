@@ -49,7 +49,7 @@ public class MainFrame extends javax.swing.JFrame {
         pContent.add(salesPanel, "SALES");
         pContent.add(new com.cafe.view.table.TablePanel(), "TABLES"); // TablePanel from sonvu
         pContent.add(new ProductPanel(), "PRODUCTS"); // ProductPanel from HEAD
-        pContent.add(createPlaceholderPanel("Quản lý Kho"), "WAREHOUSE");
+        pContent.add(new com.cafe.view.warehouse.ImportPanel(), "WAREHOUSE");
         pContent.add(new StatsPanel(), "STATS");
         pContent.add(new com.cafe.view.employee.EmployeePanel(), "EMPLOYEES");
         pContent.add(new com.cafe.view.account.AccountPanel(), "ACCOUNTS");
@@ -72,14 +72,8 @@ public class MainFrame extends javax.swing.JFrame {
         setupMenuButton(btnEmployee, "Nhân viên", "EMPLOYEES");
         setupMenuButton(btnAccount, "Tài khoản", "ACCOUNTS");
         
-        // Setup Warehouse button
-        btnWarehouse.setText("Kho");
-        btnWarehouse.setForeground(java.awt.Color.WHITE);
-        btnWarehouse.setBackground(SIDEBAR_BG);
-        btnWarehouse.setFocusPainted(false);
-        btnWarehouse.setBorderPainted(false);
-        btnWarehouse.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-        btnWarehouse.addActionListener(e -> openImportDialog());
+        // Setup Warehouse button với CardLayout (giống các button khác)
+        setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
         // Setup role indicator panel at bottom of sidebar
         setupRoleIndicatorPanel();
 
