@@ -8,12 +8,12 @@ package com.cafe.view.warehouse;
  *
  * @author Owner
  */
-public class WarehousePanel extends javax.swing.JPanel {
+public class InventoryPanel extends javax.swing.JPanel {
 
     /**
      * Creates new form WarehousePanel
      */
-    public WarehousePanel() {
+    public InventoryPanel() {
         initComponents();
     }
 

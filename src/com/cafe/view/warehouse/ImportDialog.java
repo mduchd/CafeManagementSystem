@@ -44,7 +44,6 @@ public class ImportDialog extends javax.swing.JDialog {
         menuPanel.setLayout(new java.awt.GridLayout(5, 1, 5, 5));
 
         btnSupplier.setText("Nhà cung cấp");
-        btnSupplier.setActionCommand("Nhà cung cấp");
         btnSupplier.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSupplierActionPerformed(evt);
@@ -69,6 +68,11 @@ public class ImportDialog extends javax.swing.JDialog {
         menuPanel.add(btnExport);
 
         btnInventory.setText("Thống kê");
+        btnInventory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnInventoryActionPerformed(evt);
+            }
+        });
         menuPanel.add(btnInventory);
 
         btnExit.setText("Thoát");
@@ -105,6 +109,11 @@ public class ImportDialog extends javax.swing.JDialog {
         contentPanel.revalidate();
         contentPanel.repaint();
     }//GEN-LAST:event_btnExportActionPerformed
+
+    private void btnInventoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInventoryActionPerformed
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_btnInventoryActionPerformed
 
     /**
      * @param args the command line arguments
