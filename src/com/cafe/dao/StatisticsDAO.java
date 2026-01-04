@@ -7,11 +7,10 @@ import javax.swing.table.DefaultTableModel;
 
 public class StatisticsDAO {
 
-    // 1. Tính tổng doanh thu trong khoảng thời gian
+    // 1. Tính tổng doanh thu (Sửa thành TongTien, NgayTao)
     public double getTotalRevenue(Timestamp fromDate, Timestamp toDate) {
         double total = 0;
-        // Giả sử bảng hóa đơn là 'orders' và cột tổng tiền là 'total_price'
-        String sql = "SELECT SUM(total_price) FROM orders WHERE created_at BETWEEN ? AND ?";
+        String sql = "SELECT SUM(TongTien) FROM hoadon WHERE NgayTao BETWEEN ? AND ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, fromDate);
@@ -29,7 +28,7 @@ public class StatisticsDAO {
     // 2. Đếm tổng số đơn hàng
     public int getTotalOrders(Timestamp fromDate, Timestamp toDate) {
         int count = 0;
-        String sql = "SELECT COUNT(*) FROM orders WHERE created_at BETWEEN ? AND ?";
+        String sql = "SELECT COUNT(*) FROM hoadon WHERE NgayTao BETWEEN ? AND ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, fromDate);
@@ -45,15 +44,17 @@ public class StatisticsDAO {
     }
 
     // 3. Tìm món bán chạy nhất
+    // LƯU Ý: Tôi giả định bảng 'chitiethoadon' dùng cột: MaHD, MaSP, SoLuong
+    // Và bảng 'sanpham' dùng cột: MaSP, TenSP
+    // Nếu chạy bị lỗi phần này, bạn cần kiểm tra lại tên cột của 2 bảng đó.
     public String getBestSellingProduct(Timestamp fromDate, Timestamp toDate) {
         String bestSeller = "Chưa có liệu";
-        // Cần bảng 'order_details' (lưu món ăn) kết nối với 'orders'
-        // Logic: Cộng tổng số lượng (quantity) theo tên món, sắp xếp giảm dần, lấy top 1
-        String sql = "SELECT d.product_name, SUM(d.quantity) as qty " +
-                     "FROM order_details d " +
-                     "JOIN orders o ON d.order_id = o.id " +
-                     "WHERE o.created_at BETWEEN ? AND ? " +
-                     "GROUP BY d.product_name " +
+        String sql = "SELECT s.TenSP, SUM(c.SoLuong) as qty " +
+                     "FROM chitiethoadon c " +
+                     "JOIN hoadon h ON c.MaHD = h.MaHD " +
+                     "JOIN sanpham s ON c.MaSP = s.MaSP " +
+                     "WHERE h.NgayTao BETWEEN ? AND ? " +
+                     "GROUP BY s.TenSP " +
                      "ORDER BY qty DESC LIMIT 1";
                      
         try (Connection conn = DatabaseConnection.getConnection();
@@ -62,28 +63,34 @@ public class StatisticsDAO {
             ps.setTimestamp(2, toDate);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                bestSeller = rs.getString("product_name");
+                bestSeller = rs.getString("TenSP");
             }
         } catch (Exception e) {
-            // Nếu bảng chưa có dữ liệu hoặc tên bảng khác, trả về mặc định
-            System.out.println("Lỗi lấy món bán chạy (Kiểm tra lại tên bảng trong DB): " + e.getMessage());
+            System.out.println("Lỗi tìm món bán chạy (Check lại tên cột bảng sanpham/chitiethoadon): " + e.getMessage());
         }
         return bestSeller;
     }
 
-    // 4. Lấy danh sách đơn hàng để hiển thị lên bảng
+    // 4. Lấy danh sách đơn hàng đổ vào Bảng (QUAN TRỌNG NHẤT)
     public DefaultTableModel getOrdersModel(Timestamp fromDate, Timestamp toDate) {
         Vector<String> columnNames = new Vector<>();
         columnNames.add("STT");
         columnNames.add("Mã đơn hàng");
-        columnNames.add("Thành tiền");
+        columnNames.add("Người lập"); 
         columnNames.add("Thời gian");
+        columnNames.add("Tổng tiền");
 
         Vector<Vector<Object>> data = new Vector<>();
-        String sql = "SELECT id, total_price, created_at FROM orders WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
+        
+        // Cập nhật đúng tên cột theo ảnh: MaHD, TongTien, NgayTao, NguoiTao
+        String sql = "SELECT MaHD, TongTien, NgayTao, NguoiTao FROM hoadon WHERE NgayTao BETWEEN ? AND ? ORDER BY NgayTao DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            // Debug: In ra console để chắc chắn code chạy
+            System.out.println("SQL đang chạy: " + sql);
+            
             ps.setTimestamp(1, fromDate);
             ps.setTimestamp(2, toDate);
             ResultSet rs = ps.executeQuery();
@@ -92,9 +99,23 @@ public class StatisticsDAO {
             while (rs.next()) {
                 Vector<Object> row = new Vector<>();
                 row.add(stt++);
-                row.add(rs.getInt("id"));
-                row.add(String.format("%,.0f đ", rs.getDouble("total_price"))); // Format tiền: 50.000 đ
-                row.add(rs.getTimestamp("created_at").toString());
+                
+                // Lấy MaHD (trong DB có thể là int hoặc String)
+                row.add(rs.getString("MaHD")); 
+                
+                // Lấy NguoiTao
+                row.add(rs.getString("NguoiTao"));
+
+                // Lấy NgayTao và format lại
+                try {
+                    row.add(new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(rs.getTimestamp("NgayTao")));
+                } catch (Exception e) { row.add(""); }
+
+                // Lấy TongTien và format tiền tệ
+                try {
+                    row.add(String.format("%,.0f đ", rs.getDouble("TongTien")));
+                } catch (Exception e) { row.add("0 đ"); }
+                
                 data.add(row);
             }
         } catch (Exception e) {
