@@ -58,6 +58,8 @@ public class SalesPanel extends javax.swing.JPanel {
         
         // Thêm buttons vào panel nếu chưa có
         if (pBillBottom != null && btnCheckout.getParent() == null) {
+            // Đổi layout để 2 buttons nằm cạnh nhau
+            pBillBottom.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
             pBillBottom.add(btnCancel);
             pBillBottom.add(btnCheckout);
         }
@@ -86,8 +88,8 @@ public class SalesPanel extends javax.swing.JPanel {
         jLabel1.setText("Chưa chọn bàn");
         jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
 
-        jLabel2.setText("Dùng tại bàn");
-        jLabel2.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
+        // jLabel2 - ẩn label "Dùng tại bàn"
+        jLabel2.setVisible(false);
 
         // 4) Setup bill table model
         jTable1.setModel(new javax.swing.table.DefaultTableModel(

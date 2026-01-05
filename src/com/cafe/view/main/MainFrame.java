@@ -59,9 +59,21 @@ public class MainFrame extends javax.swing.JFrame {
         pLogo.setBackground(SIDEBAR_BG);
         pMenu.setBackground(SIDEBAR_BG);
 
-        // Style logo
+        // Style logo - thay đổi layout để căn giữa
+        pLogo.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 30)); // Căn giữa với padding top 30
+        pLogo.removeAll();
+        
+        try {
+            jLabel1.setIcon(com.cafe.service.XImage.getResizedIcon("logo.png", 30, 30));
+        } catch (Exception e) {
+            // Nếu không load được icon thì bỏ qua
+        }
         jLabel1.setForeground(java.awt.Color.WHITE);
         jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+        jLabel1.setIconTextGap(8);
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
+        pLogo.add(jLabel1); // Thêm lại label vào panel
 
         // Setup menu buttons
         setupMenuButton(btnSales, "Bán hàng", "SALES");
@@ -123,7 +135,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnLogout.setBackground(new java.awt.Color(231, 76, 60));
         btnLogout.setFocusPainted(false);
         btnLogout.setBorderPainted(false);
-        btnLogout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 11));
+        btnLogout.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
         btnLogout.addActionListener(e -> {
             UserSession.clear();
             dispose();
