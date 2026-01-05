@@ -3,29 +3,27 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.cafe.view.warehouse;
-import javax.swing.table.DefaultTableModel;
 import com.cafe.database.DBConnection;
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 /**
  *
- * @author Le Diu
+ * @author Owner
  */
 public class ExportPanel extends javax.swing.JPanel {
-    DefaultTableModel model;
-    private int stockExport = 0;
-    
-
+DefaultTableModel modelExport;
     /**
-     * Creates new form ExportPanel
+     * Creates new form WarehousePanel
      */
     public ExportPanel() {
         initComponents();
-        initTable();
-        loadIngredient();
-        loadExport();
-        
+        initTable(); // Gọi hàm này để tạo cột cho bảng
+        txtTonKho.setEditable(false); // Không cho sửa ô tồn kho
+        loadExportHistory();
+        if (cbIngredient.getItemCount() > 0) {
+        loadStockForExport(cbIngredient.getSelectedItem().toString());
+    }
     }
 
     /**
@@ -41,16 +39,18 @@ public class ExportPanel extends javax.swing.JPanel {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         cbIngredient = new javax.swing.JComboBox<>();
-        jLabel5 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        txtQuantity = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        btnExport = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblExport = new javax.swing.JTable();
-        txtQuantity = new javax.swing.JTextField();
-        lblStockExport = new javax.swing.JLabel();
-        txtStockExport = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        txtTonKho = new javax.swing.JTextField();
+        btnReset = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel1.setText("Xuất nguyên liệu");
+        jLabel1.setText("XUẤT NGUYÊN LIỆU");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel2.setText("Nguyên liệu");
@@ -60,19 +60,26 @@ public class ExportPanel extends javax.swing.JPanel {
 
         cbIngredient.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         cbIngredient.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cà phê bột", "Cà phê hạt", "Đường", "Bột Béo", "Sữa tươi", "Sữa đặc", "Kem béo(Rich)", "Siro", "Mứt/sốt trái cây", " ", " " }));
+        cbIngredient.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbIngredientItemStateChanged(evt);
+            }
+        });
         cbIngredient.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cbIngredientActionPerformed(evt);
             }
         });
 
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
-        jLabel5.setText("Danh sách nguyên liệu xuất");
+        txtQuantity.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
-        jButton1.setText("Xuất");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
+        jLabel4.setText("Danh sách xuất nguyên liệu");
+
+        btnExport.setText("Xuất");
+        btnExport.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnExportActionPerformed(evt);
             }
         });
 
@@ -89,13 +96,22 @@ public class ExportPanel extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(tblExport);
 
-        txtQuantity.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
+        jLabel5.setText("Tồn kho hiện tại");
 
-        lblStockExport.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
-        lblStockExport.setText("Tồn kho hiện tại: ");
+        btnReset.setText("Làm mới");
+        btnReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResetActionPerformed(evt);
+            }
+        });
 
-        txtStockExport.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        txtStockExport.setEnabled(false);
+        btnDelete.setText("Xóa");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -104,224 +120,234 @@ public class ExportPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(54, 54, 54)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel3))
-                                .addGap(39, 39, 39)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(cbIngredient, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(jLabel5)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lblStockExport)
-                                .addGap(38, 38, 38)
-                                .addComponent(txtStockExport, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(141, 141, 141)
+                        .addGap(136, 136, 136)
                         .addComponent(jLabel1))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(212, 212, 212)
-                        .addComponent(jButton1)))
-                .addContainerGap(159, Short.MAX_VALUE))
+                        .addGap(53, 53, 53)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addGap(31, 31, 31)
+                                .addComponent(txtTonKho))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel2)
+                                            .addComponent(jLabel3)
+                                            .addComponent(btnReset))
+                                        .addGap(39, 39, 39)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(txtQuantity)
+                                            .addComponent(cbIngredient, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 304, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(btnExport)
+                                            .addComponent(jLabel4))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btnDelete)
+                                        .addGap(18, 18, 18)))
+                                .addGap(10, 10, 10)))))
+                .addContainerGap(303, Short.MAX_VALUE))
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {cbIngredient, txtQuantity});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(cbIngredient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
+                .addComponent(jLabel1)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(cbIngredient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(txtQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jButton1)
-                .addGap(14, 14, 14)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblStockExport)
-                    .addComponent(txtStockExport, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(102, Short.MAX_VALUE))
+                    .addComponent(btnExport)
+                    .addComponent(btnReset)
+                    .addComponent(btnDelete))
+                .addGap(24, 24, 24)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(22, 22, 22)
+                        .addComponent(jLabel5))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(txtTonKho, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(30, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {cbIngredient, txtQuantity});
 
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportActionPerformed
         // TODO add your handling code here:
-        int qtyExport;
+     try {
+        String ingredient = cbIngredient.getSelectedItem().toString();
+        String quantityStr = txtQuantity.getText().trim();
+        String stockStr = txtTonKho.getText().trim();
 
-try {
-    qtyExport = Integer.parseInt(txtQuantity.getText());
-} catch (Exception e) {
-    JOptionPane.showMessageDialog(this, "Số lượng xuất không hợp lệ!");
+        if (quantityStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập số lượng xuất!");
+            return;
+        }
+
+        double quantityXuat = Double.parseDouble(quantityStr);
+        if (quantityXuat <= 0) {
+    JOptionPane.showMessageDialog(this, "Số lượng xuất phải lớn hơn 0!");
     return;
 }
+        double stockHienTai = stockStr.isEmpty() ? 0 : Double.parseDouble(stockStr);
 
-if (qtyExport > stockExport) {
-    JOptionPane.showMessageDialog(
-        this,
-        "Không đủ tồn kho! Tồn hiện tại: " + stockExport,
-        "Lỗi",
-        JOptionPane.ERROR_MESSAGE
-    );
-    return;
-}
+        if (quantityXuat > stockHienTai) {
+            JOptionPane.showMessageDialog(this, "Lỗi: Số lượng xuất vượt quá tồn kho!");
+            return;
+        }
 
-exportIngredient(qtyExport);
+        // --- LƯU VÀO DATABASE ---
+        String sql = "INSERT INTO tbl_export (ingredient_name, quantity, export_date) VALUES (?, ?, NOW())";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ingredient);
+            ps.setDouble(2, quantityXuat);
+            ps.executeUpdate();
+            
+            JOptionPane.showMessageDialog(this, "Đã xuất nguyên liệu thành công!");
+            
+            // --- CẬP NHẬT GIAO DIỆN ---
+            loadExportHistory(); // Tải lại lịch sử lên bảng
+            loadStockForExport(ingredient); // Cập nhật lại số tồn kho mới
+            txtQuantity.setText(""); 
+        }
 
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Lỗi: Số lượng phải là số!");
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    }//GEN-LAST:event_btnExportActionPerformed
+
+    private void cbIngredientItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbIngredientItemStateChanged
+        // TODO add your handling code here:
         
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_cbIngredientItemStateChanged
 
     private void cbIngredientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbIngredientActionPerformed
         // TODO add your handling code here:
-        String ingredientName = cbIngredient.getSelectedItem().toString();
-        loadStockExport(ingredientName);
+        String name = cbIngredient.getSelectedItem().toString();
+        loadStockForExport(name);
     }//GEN-LAST:event_cbIngredientActionPerformed
+
+    private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
+        // TODO add your handling code here:
+        txtQuantity.setText("");
+    // Cập nhật lại tồn kho cho nguyên liệu đang chọn
+    String name = cbIngredient.getSelectedItem().toString();
+    loadStockForExport(name);
+    // Tải lại bảng lịch sử
+    loadExportHistory();
+    }//GEN-LAST:event_btnResetActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+        int selectedRow = tblExport.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa!");
+        return;
+    }
+
+    int idXuat = (int) tblExport.getValueAt(selectedRow, 0); // Lấy ID từ cột ẩn
+    String name = tblExport.getValueAt(selectedRow, 2).toString();
+
+    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa bản ghi này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+    if (confirm == JOptionPane.YES_OPTION) {
+        String sql = "DELETE FROM tbl_export WHERE export_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idXuat);
+            ps.executeUpdate();
+            
+            JOptionPane.showMessageDialog(this, "Xóa thành công!");
+            loadExportHistory();
+            loadStockForExport(name);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+    
+    }//GEN-LAST:event_btnDeleteActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnExport;
+    private javax.swing.JButton btnReset;
     private javax.swing.JComboBox<String> cbIngredient;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lblStockExport;
     private javax.swing.JTable tblExport;
     private javax.swing.JTextField txtQuantity;
-    private javax.swing.JButton txtStockExport;
+    private javax.swing.JTextField txtTonKho;
     // End of variables declaration//GEN-END:variables
 
     private void initTable() {
-        model = new DefaultTableModel();
-        model.addColumn("STT");
-        model.addColumn("Nguyên liệu");
-        model.addColumn("Số lượng xuất");
+        modelExport = new DefaultTableModel();
+        modelExport.addColumn("ID"); // Cột ẩn
+        modelExport.addColumn("STT");
+        modelExport.addColumn("Nguyên liệu");
+        modelExport.addColumn("Số lượng xuất");
+        tblExport.setModel(modelExport);
 
-        tblExport.setModel(model);
+        // Ẩn cột ID đi để người dùng không thấy
+        tblExport.getColumnModel().getColumn(0).setMinWidth(0);
+        tblExport.getColumnModel().getColumn(0).setMaxWidth(0);
     }
 
-    private void loadIngredient() {
-        cbIngredient.removeAllItems();
-
-    String sql = "SELECT DISTINCT ingredient_name FROM tbl_import";
-
-    try (Connection conn = DBConnection.getConnection();
-         Statement st = conn.createStatement();
-         ResultSet rs = st.executeQuery(sql)) {
-
-        while (rs.next()) {
-            cbIngredient.addItem(rs.getString("ingredient_name"));
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    }
-
-    private void loadExport() {
-        model.setRowCount(0);
-        int stt = 1;
-
-    String sql = """
-        SELECT i.ingredient_name,
-               e.quantity
-        FROM tbl_export e
-        JOIN tbl_import i
-          ON e.supplier_id = i.supplier_id
-    """;
-
-    try (Connection conn = DBConnection.getConnection();
-         Statement st = conn.createStatement();
-         ResultSet rs = st.executeQuery(sql)) {
-
-        while (rs.next()) {
-            model.addRow(new Object[]{
-                stt++,
-                rs.getString("ingredient_name"),
-                rs.getInt("quantity")
-            });
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    }
-    private void exportIngredient(int qtyExport) {
-    String ingredient = cbIngredient.getSelectedItem().toString();
-
-    String sql = """
-        INSERT INTO tbl_export (ingredient_name, quantity)
-        VALUES (?, ?)
-    """;
-
+    private void loadStockForExport(String name) {
+        String sql = "SELECT (SELECT IFNULL(SUM(quantity), 0) FROM tbl_import WHERE ingredient_name = ?) - " +
+                 "(SELECT IFNULL(SUM(quantity), 0) FROM tbl_export WHERE ingredient_name = ?) AS ton_kho";
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement(sql)) {
-
-        ps.setString(1, ingredient);
-        ps.setInt(2, qtyExport); 
-        ps.executeUpdate();
-
-        JOptionPane.showMessageDialog(this, "Xuất thành công!");
-
-        loadExport();                  // reload bảng
-        loadStockExport(ingredient);   // cập nhật tồn
-        txtQuantity.setText("");       // clear ô nhập
-
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Lỗi khi xuất!");
-        e.printStackTrace();
-    }
-
-    }
-
-    private void loadStockExport(String ingredientName) {
-String sql = """
-        SELECT 
-            IFNULL(SUM(quantity), 0)
-            -
-            IFNULL((
-                SELECT SUM(quantity)
-                FROM tbl_export
-                WHERE ingredient_name = ?
-            ), 0) AS stock
-        FROM tbl_import
-        WHERE ingredient_name = ?
-    """;
-
-    try (Connection conn = DBConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-
-        ps.setString(1, ingredientName);
-        ps.setString(2, ingredientName);
-
+        ps.setString(1, name);
+        ps.setString(2, name);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            stockExport = rs.getInt("stock");
-            txtStockExport.setText(String.valueOf(stockExport));
+            // Hiển thị vào ô txtTonKho
+            txtTonKho.setText(rs.getString("ton_kho"));
         }
-
     } catch (Exception e) {
-        stockExport = 0;
-        txtStockExport.setText("0");
+        txtTonKho.setText("0");
         e.printStackTrace();
-    }   
     }
     }
-    
 
-
+    private void loadExportHistory() {
+        modelExport.setRowCount(0);
+    int stt = 1;
+    // Lấy thêm export_id
+    String sql = "SELECT export_id, ingredient_name, quantity FROM tbl_export ORDER BY export_id DESC";
+    try (Connection conn = DBConnection.getConnection();
+         Statement st = conn.createStatement();
+         ResultSet rs = st.executeQuery(sql)) {
+        while (rs.next()) {
+            modelExport.addRow(new Object[]{
+                rs.getInt("export_id"), // Cột 0: ID ẩn
+                stt++,                  // Cột 1: STT
+                rs.getString("ingredient_name"),
+                rs.getDouble("quantity")
+            });
+        }
+    } catch (Exception e) { e.printStackTrace(); }
+    }
+}

@@ -35,7 +35,7 @@ public class ImportDialog extends javax.swing.JDialog {
         btnSupplier = new javax.swing.JButton();
         btnImport = new javax.swing.JButton();
         btnExport = new javax.swing.JButton();
-        btnInventory = new javax.swing.JButton();
+        btnStatistic = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         contentPanel = new java.awt.Panel();
 
@@ -67,13 +67,13 @@ public class ImportDialog extends javax.swing.JDialog {
         });
         menuPanel.add(btnExport);
 
-        btnInventory.setText("Thống kê");
-        btnInventory.addActionListener(new java.awt.event.ActionListener() {
+        btnStatistic.setText("Thống kê");
+        btnStatistic.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnInventoryActionPerformed(evt);
+                btnStatisticActionPerformed(evt);
             }
         });
-        menuPanel.add(btnInventory);
+        menuPanel.add(btnStatistic);
 
         btnExit.setText("Thoát");
         menuPanel.add(btnExit);
@@ -110,10 +110,16 @@ public class ImportDialog extends javax.swing.JDialog {
         contentPanel.repaint();
     }//GEN-LAST:event_btnExportActionPerformed
 
-    private void btnInventoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInventoryActionPerformed
+    private void btnStatisticActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStatisticActionPerformed
         // TODO add your handling code here:
+        contentPanel.removeAll();
+        contentPanel.add(new StatisticPanel());
+        contentPanel.revalidate();
+        contentPanel.repaint();
         
-    }//GEN-LAST:event_btnInventoryActionPerformed
+        
+        
+    }//GEN-LAST:event_btnStatisticActionPerformed
 
     /**
      * @param args the command line arguments
@@ -156,7 +162,7 @@ public class ImportDialog extends javax.swing.JDialog {
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnExport;
     private javax.swing.JButton btnImport;
-    private javax.swing.JButton btnInventory;
+    private javax.swing.JButton btnStatistic;
     private javax.swing.JButton btnSupplier;
     private java.awt.Panel contentPanel;
     private java.awt.Panel menuPanel;
