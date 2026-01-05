@@ -8,7 +8,7 @@ public class MainUI extends JFrame {
 
     public MainUI() {
         setTitle("Quản lý quán Cafe");
-        setSize(900, 2400);
+        setSize(900, 900);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
