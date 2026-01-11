@@ -23,10 +23,10 @@ import java.text.SimpleDateFormat;
 public class SalesPanel extends javax.swing.JPanel {
 
     // === COLOR CONSTANTS (unified naming) ===
-    private static final Color COLOR_AVAILABLE = new Color(46, 204, 113);  // Green: available/empty
-    private static final Color COLOR_IN_USE = new Color(231, 76, 60);      // Red: in use/busy
-    private static final Color COLOR_RESERVED = new Color(241, 196, 15);   // Yellow: reserved
-    private static final Color COLOR_SELECTED = new Color(52, 152, 219);   // Blue: selected
+    private static final Color COLOR_AVAILABLE = new Color(46, 204, 113); // Green: available/empty
+    private static final Color COLOR_IN_USE = new Color(231, 76, 60); // Red: in use/busy
+    private static final Color COLOR_RESERVED = new Color(241, 196, 15); // Yellow: reserved
+    private static final Color COLOR_SELECTED = new Color(52, 152, 219); // Blue: selected
 
     // === SERVICES (merged) ===
     private final CafeTableService tableService = new CafeTableService();
@@ -55,7 +55,7 @@ public class SalesPanel extends javax.swing.JPanel {
         if (btnCancel == null) {
             btnCancel = new javax.swing.JButton("HỦY");
         }
-        
+
         // Thêm buttons vào panel nếu chưa có
         if (pBillBottom != null && btnCheckout.getParent() == null) {
             // Đổi layout để 2 buttons nằm cạnh nhau
@@ -63,7 +63,7 @@ public class SalesPanel extends javax.swing.JPanel {
             pBillBottom.add(btnCancel);
             pBillBottom.add(btnCheckout);
         }
-        
+
         // 1) Load tables from database and setup dynamic table grid
         loadTablesFromDatabase();
 
@@ -78,11 +78,11 @@ public class SalesPanel extends javax.swing.JPanel {
         btnCake.setText("Bánh");
 
         // 2b) Setup filter button events
-        btnAll.addActionListener(e -> filterMenuByCategory(null));        // Tất cả
+        btnAll.addActionListener(e -> filterMenuByCategory(null)); // Tất cả
         btnCoffee.addActionListener(e -> filterMenuByCategory("Cà phê")); // Cà phê
-        btnTea.addActionListener(e -> filterMenuByCategory("Trà"));       // Trà
+        btnTea.addActionListener(e -> filterMenuByCategory("Trà")); // Trà
         btnJuice.addActionListener(e -> filterMenuByCategory("Nước ngọt")); // Nước
-        btnCake.addActionListener(e -> filterMenuByCategory("Bánh"));     // Bánh
+        btnCake.addActionListener(e -> filterMenuByCategory("Bánh")); // Bánh
 
         // 3) Customize bill header labels
         jLabel1.setText("Chưa chọn bàn");
@@ -93,9 +93,8 @@ public class SalesPanel extends javax.swing.JPanel {
 
         // 4) Setup bill table model
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object[][]{},
-            new String[]{"Món", "SL", "Đơn giá", "Thành tiền"}
-        ));
+                new Object[][] {},
+                new String[] { "Món", "SL", "Đơn giá", "Thành tiền" }));
 
         // 5) Customize summary labels
         lblSubtotalLabel.setText("Tạm tính:");
@@ -149,30 +148,26 @@ public class SalesPanel extends javax.swing.JPanel {
 
         // 9) Setup Legend Panel
         JLabel lblEmpty = new JLabel(String.format(
-            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Trống</html>",
-            COLOR_AVAILABLE.getRed(), COLOR_AVAILABLE.getGreen(), COLOR_AVAILABLE.getBlue()
-        ));
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Trống</html>",
+                COLOR_AVAILABLE.getRed(), COLOR_AVAILABLE.getGreen(), COLOR_AVAILABLE.getBlue()));
         lblEmpty.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         pLegend.add(lblEmpty);
 
         JLabel lblBusy = new JLabel(String.format(
-            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Có khách</html>",
-            COLOR_IN_USE.getRed(), COLOR_IN_USE.getGreen(), COLOR_IN_USE.getBlue()
-        ));
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Có khách</html>",
+                COLOR_IN_USE.getRed(), COLOR_IN_USE.getGreen(), COLOR_IN_USE.getBlue()));
         lblBusy.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         pLegend.add(lblBusy);
 
         JLabel lblSelected = new JLabel(String.format(
-            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đang chọn</html>",
-            COLOR_SELECTED.getRed(), COLOR_SELECTED.getGreen(), COLOR_SELECTED.getBlue()
-        ));
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đang chọn</html>",
+                COLOR_SELECTED.getRed(), COLOR_SELECTED.getGreen(), COLOR_SELECTED.getBlue()));
         lblSelected.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         pLegend.add(lblSelected);
 
         JLabel lblReserved = new JLabel(String.format(
-            "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đã đặt</html>",
-            COLOR_RESERVED.getRed(), COLOR_RESERVED.getGreen(), COLOR_RESERVED.getBlue()
-        ));
+                "<html><span style='font-size:16px; color:rgb(%d,%d,%d);'>●</span> Đã đặt</html>",
+                COLOR_RESERVED.getRed(), COLOR_RESERVED.getGreen(), COLOR_RESERVED.getBlue()));
         lblReserved.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         pLegend.add(lblReserved);
 
@@ -322,17 +317,16 @@ public class SalesPanel extends javax.swing.JPanel {
             for (Product product : products) {
                 String status = product.getStatus();
                 boolean isActive = "DangBan".equals(status) || "Đang bán".equals(status) || "1".equals(status);
-                
+
                 // Kiểm tra category (null = tất cả)
                 boolean matchCategory = (category == null) || category.equalsIgnoreCase(product.getCategory());
-                
+
                 if (isActive && matchCategory) {
                     JButton btn = createMenuItemButton(
-                        product.getName(),
-                        String.format("%.0fđ", product.getPrice()),
-                        product.getCategory(),
-                        product.getImage()
-                    );
+                            product.getName(),
+                            String.format("%.0fđ", product.getPrice()),
+                            product.getCategory(),
+                            product.getImage());
                     pMenuItems.add(btn);
                 }
             }
@@ -350,20 +344,19 @@ public class SalesPanel extends javax.swing.JPanel {
         btn.setMaximumSize(new Dimension(160, 150));
         btn.setFocusPainted(false);
         btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-            javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-            javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)
-        ));
+                javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)));
 
         // Tạo label chứa ảnh ở giữa - chiếm toàn bộ phần trên
         JLabel lblImage = new JLabel();
         lblImage.setHorizontalAlignment(SwingConstants.CENTER);
         lblImage.setVerticalAlignment(SwingConstants.CENTER);
-        
+
         // Load và scale ảnh - kích thước lớn hơn (100x100)
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
                 java.io.File imgFile = new java.io.File(imagePath);
-                
+
                 if (!imgFile.exists()) {
                     imgFile = new java.io.File("src/icon/" + imagePath);
                 }
@@ -373,7 +366,7 @@ public class SalesPanel extends javax.swing.JPanel {
                 if (!imgFile.exists()) {
                     imgFile = new java.io.File("src/images/" + imagePath);
                 }
-                
+
                 if (imgFile.exists()) {
                     ImageIcon originalIcon = new ImageIcon(imgFile.getAbsolutePath());
                     Image scaledImg = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
@@ -397,7 +390,6 @@ public class SalesPanel extends javax.swing.JPanel {
 
         // Rút gọn tên nếu quá dài (max 14 ký tự để hiển thị đủ "...")
         String displayName = name;
-        
 
         JLabel lblName = new JLabel(displayName, SwingConstants.CENTER);
         lblName.setFont(new Font("Segoe UI", Font.BOLD, 11));
@@ -412,7 +404,7 @@ public class SalesPanel extends javax.swing.JPanel {
         bottomPanel.add(lblPrice);
 
         // Thêm components vào button
-        btn.add(lblImage, BorderLayout.CENTER);  // Ảnh chiếm phần giữa (lớn)
+        btn.add(lblImage, BorderLayout.CENTER); // Ảnh chiếm phần giữa (lớn)
         btn.add(bottomPanel, BorderLayout.SOUTH); // Tên + Giá ở dưới
 
         Color bgColor = new Color(255, 255, 255);
@@ -422,16 +414,15 @@ public class SalesPanel extends javax.swing.JPanel {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 btn.setBackground(new Color(240, 248, 255));
                 btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-                    javax.swing.BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                    javax.swing.BorderFactory.createEmptyBorder(7, 7, 7, 7)
-                ));
+                        javax.swing.BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
+                        javax.swing.BorderFactory.createEmptyBorder(7, 7, 7, 7)));
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 btn.setBackground(bgColor);
                 btn.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-                    javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-                    javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)
-                ));
+                        javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                        javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)));
             }
         });
 
@@ -439,7 +430,6 @@ public class SalesPanel extends javax.swing.JPanel {
 
         return btn;
     }
-
 
     // ==================== BILL MANAGEMENT (merged) ====================
 
@@ -465,11 +455,11 @@ public class SalesPanel extends javax.swing.JPanel {
         }
 
         if (!found) {
-            model.addRow(new Object[]{
-                itemName,
-                1,
-                formatCurrency(price),
-                formatCurrency(price)
+            model.addRow(new Object[] {
+                    itemName,
+                    1,
+                    formatCurrency(price),
+                    formatCurrency(price)
             });
         }
 
@@ -491,8 +481,10 @@ public class SalesPanel extends javax.swing.JPanel {
         int discountPercent = 0;
         try {
             discountPercent = Integer.parseInt(txtDiscountPercent.getText().trim());
-            if (discountPercent < 0) discountPercent = 0;
-            if (discountPercent > 100) discountPercent = 100;
+            if (discountPercent < 0)
+                discountPercent = 0;
+            if (discountPercent > 100)
+                discountPercent = 100;
         } catch (NumberFormatException e) {
             discountPercent = 0;
             txtDiscountPercent.setText("0");
@@ -531,9 +523,9 @@ public class SalesPanel extends javax.swing.JPanel {
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-            "Xác nhận thanh toán cho " + jLabel1.getText() + "?",
-            "Xác nhận thanh toán",
-            JOptionPane.YES_NO_OPTION);
+                "Xác nhận thanh toán cho " + jLabel1.getText() + "?",
+                "Xác nhận thanh toán",
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) {
             return;
@@ -554,9 +546,9 @@ public class SalesPanel extends javax.swing.JPanel {
 
             if (productId == -1) {
                 JOptionPane.showMessageDialog(this,
-                    "Không tìm thấy sản phẩm: " + productName,
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
+                        "Không tìm thấy sản phẩm: " + productName,
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -590,12 +582,12 @@ public class SalesPanel extends javax.swing.JPanel {
             clearBill();
 
             JOptionPane.showMessageDialog(this,
-                "Thanh toán thành công!\nMã hóa đơn: " + orderId);
+                    "Thanh toán thành công!\nMã hóa đơn: " + orderId);
         } else {
             JOptionPane.showMessageDialog(this,
-                "Lỗi khi lưu hóa đơn!",
-                "Lỗi",
-                JOptionPane.ERROR_MESSAGE);
+                    "Lỗi khi lưu hóa đơn!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -616,7 +608,8 @@ public class SalesPanel extends javax.swing.JPanel {
         invoice.append("ĐT: 0123456789\n");
         invoice.append("===========================================\n\n");
         invoice.append("Hóa đơn số: ").append(orderId).append("\n");
-        invoice.append("Ngày: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(order.getCreatedDate())).append("\n");
+        invoice.append("Ngày: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(order.getCreatedDate()))
+                .append("\n");
         invoice.append(jLabel1.getText()).append(" - ").append(jLabel2.getText()).append("\n");
         invoice.append("Nhân viên: ").append(UserSession.getCurrentUser().getFullName()).append("\n");
         invoice.append("-------------------------------------------\n\n");
@@ -669,7 +662,8 @@ public class SalesPanel extends javax.swing.JPanel {
     // ==================== GENERATED CODE (NetBeans) ====================
 
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jPanel4 = new javax.swing.JPanel();

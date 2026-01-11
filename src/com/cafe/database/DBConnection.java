@@ -3,15 +3,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.cafe.database;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
+
 /**
  *
  * @author Le Diu
  */
 public class DBConnection {
-    private static final String URL =
-        "jdbc:mysql://localhost:3306/cafe_management?useSSL=false&serverTimezone=UTC";
+    private static final String URL = "jdbc:mysql://localhost:3306/cafedb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
     private static final String PASSWORD = "";
 
@@ -25,5 +26,3 @@ public class DBConnection {
         }
     }
 }
-
-    

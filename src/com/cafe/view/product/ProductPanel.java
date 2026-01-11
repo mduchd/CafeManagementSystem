@@ -1,656 +1,458 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package com.cafe.view.product;
 
 import com.cafe.service.ProductService;
 import com.cafe.model.Product;
-import com.cafe.service.XImage;
-import java.awt.Image;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
+
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JOptionPane;
+import java.awt.*;
+import java.util.List;
 
-public class ProductPanel extends javax.swing.JPanel {
+/**
+ * Product Management Panel - CRUD operations for products
+ * Style đồng bộ với TablePanel và EmployeePanel
+ */
+public class ProductPanel extends JPanel {
 
+    // Service for database operations
     private ProductService productService = new ProductService();
+
+    // Table components
+    private JTable tblProducts;
     private DefaultTableModel tableModel;
 
-   public ProductPanel() {
-    initComponents();
-    tableModel = (DefaultTableModel) tblProduct.getModel();
-    loadTable();
-    
-    // Load icons cho buttons (như ban đầu)
-    try {
-        btnAdd.setIcon(com.cafe.service.XImage.getResizedIcon("add.png", 20, 20));
-        btnUpdate.setIcon(com.cafe.service.XImage.getResizedIcon("edit.png", 20, 20));
-        btnDelete.setIcon(com.cafe.service.XImage.getResizedIcon("delete.png", 20, 20));
-        btnSearch.setIcon(com.cafe.service.XImage.getResizedIcon("search.png", 20, 20));
-    } catch (Exception e) {
-        System.err.println("Lỗi load icon: " + e.getMessage());
+    // Form input fields
+    private JTextField txtName;
+    private JComboBox<String> cboCategory;
+    private JTextField txtPrice;
+    private JComboBox<String> cboStatus;
+    private JTextField txtSearch;
+    private JLabel lblImage;
+    private String selectedImagePath = "";
+
+    // Currently selected product ID (-1 = none)
+    private int selectedId = -1;
+
+    // Constructor - initialize UI and load data
+    public ProductPanel() {
+        initComponents();
+        loadData();
     }
-    
-    // 2. Styling cho tiêu đề
-    jLabel1.setOpaque(true);
-    jLabel1.setBackground(new java.awt.Color(52, 73, 94));
-    jLabel1.setForeground(java.awt.Color.WHITE);
-    jLabel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 15, 10, 15));
-    
-    jLabel2.setOpaque(true);
-    jLabel2.setBackground(new java.awt.Color(46, 204, 113));
-    jLabel2.setForeground(java.awt.Color.WHITE);
-    jLabel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
-    
-    jLabel8.setOpaque(true);
-    jLabel8.setBackground(new java.awt.Color(52, 152, 219));
-    jLabel8.setForeground(java.awt.Color.WHITE);
-    jLabel8.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
-    
-    // 3. Styling cho bảng
-    tblProduct.setRowHeight(28);
-    tblProduct.getTableHeader().setBackground(new java.awt.Color(52, 73, 94));
-    tblProduct.getTableHeader().setForeground(java.awt.Color.WHITE);
-    tblProduct.getTableHeader().setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
-    tblProduct.setSelectionBackground(new java.awt.Color(52, 152, 219));
-    tblProduct.setSelectionForeground(java.awt.Color.WHITE);
-    tblProduct.setGridColor(new java.awt.Color(220, 220, 220));
-    
-    // 4. Styling cho ô hình ảnh
-    lblHinhAnh.setBackground(new java.awt.Color(245, 245, 245));
-    lblHinhAnh.setOpaque(true);
-    lblHinhAnh.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-    lblHinhAnh.setText("Click để chọn ảnh");
-    lblHinhAnh.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 11));
-}
 
-    // --- CÁC HÀM SỬA LỖI ---
+    // Initialize all UI components
+    private void initComponents() {
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBackground(Color.WHITE);
 
-    public void loadTable() {
-        try {
-            DefaultTableModel model = (DefaultTableModel) tblProduct.getModel();
-            model.setRowCount(0);
-            List<Product> list = productService.getAllProducts();
-            for (Product p : list) {
-                // Đổ đủ 6 cột vào Model
-                model.addRow(new Object[]{
-                    p.getId(), p.getName(), p.getCategory(), 
-                    p.getPrice(), p.getStatus(), p.getImage()
-                });
+        // Title
+        JLabel lblTitle = new JLabel("Quản lý Sản phẩm");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        add(lblTitle, BorderLayout.NORTH);
+
+        // Center - Table area
+        JPanel pCenter = new JPanel(new BorderLayout(10, 10));
+        pCenter.setBackground(Color.WHITE);
+
+        // Search panel
+        JPanel pSearch = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pSearch.setBackground(Color.WHITE);
+        pSearch.add(new JLabel("Tìm kiếm:"));
+        txtSearch = new JTextField(20);
+        pSearch.add(txtSearch);
+        JButton btnSearch = new JButton("Tìm");
+        btnSearch.addActionListener(e -> search());
+        pSearch.add(btnSearch);
+
+        // Category filter
+        pSearch.add(new JLabel("Loại:"));
+        JComboBox<String> cboFilterCategory = new JComboBox<>(
+                new String[] { "Tất cả", "Cà phê", "Trà", "Nước ngọt", "Bánh" });
+        cboFilterCategory.addActionListener(e -> filterByCategory((String) cboFilterCategory.getSelectedItem()));
+        pSearch.add(cboFilterCategory);
+
+        JButton btnRefresh = new JButton("Làm mới");
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("");
+            cboFilterCategory.setSelectedIndex(0);
+            loadData();
+        });
+        pSearch.add(btnRefresh);
+        pCenter.add(pSearch, BorderLayout.NORTH);
+
+        // Data table setup
+        String[] columns = { "Mã SP", "Tên sản phẩm", "Loại", "Giá bán", "Trạng thái" };
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table read-only
             }
-            // Ẩn cột thứ 6 (index 5)
-            if (tblProduct.getColumnCount() >= 6) {
-                tblProduct.getColumnModel().getColumn(5).setMinWidth(0);
-                tblProduct.getColumnModel().getColumn(5).setMaxWidth(0);
-                tblProduct.getColumnModel().getColumn(5).setWidth(0);
+        };
+        tblProducts = new JTable(tableModel);
+        tblProducts.setRowHeight(28);
+        tblProducts.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tblProducts.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tblProducts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // Row selection listener
+        tblProducts.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                selectRow();
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Lỗi nạp bảng: " + e.getMessage());
-        }
-    } // Đã thêm dấu đóng ngoặc ở đây
+        });
 
-    public void chooseImage() {
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            File dest = new File("src/icon/" + file.getName());
-            try {
-                if (!dest.getParentFile().exists()) dest.getParentFile().mkdirs();
-                Files.copy(file.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                
-                lblHinhAnh.setToolTipText(file.getName()); 
-                displayImage(file.getName()); // Gọi hàm hiển thị
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi lưu ảnh: " + ex.getMessage());
-            }
-        }
+        JScrollPane scrollPane = new JScrollPane(tblProducts);
+        pCenter.add(scrollPane, BorderLayout.CENTER);
+        add(pCenter, BorderLayout.CENTER);
+
+        // Right - Form panel
+        JPanel pRight = new JPanel();
+        pRight.setLayout(new BoxLayout(pRight, BoxLayout.Y_AXIS));
+        pRight.setBackground(new Color(245, 245, 245));
+        pRight.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        pRight.setPreferredSize(new Dimension(280, 0));
+
+        // Form title - centered
+        JPanel pTitle = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pTitle.setBackground(new Color(245, 245, 245));
+        pTitle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        pTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel lblForm = new JLabel("Thông tin sản phẩm");
+        lblForm.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        pTitle.add(lblForm);
+        pRight.add(pTitle);
+        pRight.add(Box.createVerticalStrut(15));
+
+        // Product Name field
+        pRight.add(createLabel("Tên sản phẩm *"));
+        txtName = new JTextField();
+        txtName.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        txtName.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pRight.add(txtName);
+        pRight.add(Box.createVerticalStrut(10));
+
+        // Category field
+        pRight.add(createLabel("Loại sản phẩm"));
+        cboCategory = new JComboBox<>(new String[] { "Cà phê", "Trà", "Nước ngọt", "Bánh" });
+        cboCategory.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        cboCategory.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pRight.add(cboCategory);
+        pRight.add(Box.createVerticalStrut(10));
+
+        // Price field
+        pRight.add(createLabel("Giá bán (VNĐ)"));
+        txtPrice = new JTextField();
+        txtPrice.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        txtPrice.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pRight.add(txtPrice);
+        pRight.add(Box.createVerticalStrut(10));
+
+        // Status field
+        pRight.add(createLabel("Trạng thái"));
+        cboStatus = new JComboBox<>(new String[] { "Đang bán", "Ngừng bán" });
+        cboStatus.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        cboStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pRight.add(cboStatus);
+        pRight.add(Box.createVerticalStrut(10));
+
+        // Image preview
+        pRight.add(createLabel("Hình ảnh"));
+        JPanel pImage = new JPanel(new BorderLayout(5, 5));
+        pImage.setBackground(new Color(245, 245, 245));
+        pImage.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        pImage.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        lblImage = new JLabel("Chưa có ảnh", SwingConstants.CENTER);
+        lblImage.setPreferredSize(new Dimension(80, 80));
+        lblImage.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        lblImage.setOpaque(true);
+        lblImage.setBackground(Color.WHITE);
+        pImage.add(lblImage, BorderLayout.CENTER);
+
+        JButton btnChooseImage = new JButton("Chọn ảnh");
+        btnChooseImage.addActionListener(e -> chooseImage());
+        pImage.add(btnChooseImage, BorderLayout.SOUTH);
+
+        pRight.add(pImage);
+        pRight.add(Box.createVerticalStrut(20));
+
+        // Action buttons
+        JPanel pButtons = new JPanel(new GridLayout(2, 2, 5, 5));
+        pButtons.setBackground(new Color(245, 245, 245));
+        pButtons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        pButtons.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Add button
+        JButton btnAdd = new JButton("Thêm");
+        btnAdd.setBackground(new Color(76, 175, 80));
+        btnAdd.setForeground(Color.WHITE);
+        btnAdd.addActionListener(e -> add());
+        pButtons.add(btnAdd);
+
+        // Update button
+        JButton btnUpdate = new JButton("Sửa");
+        btnUpdate.setBackground(new Color(33, 150, 243));
+        btnUpdate.setForeground(Color.WHITE);
+        btnUpdate.addActionListener(e -> update());
+        pButtons.add(btnUpdate);
+
+        // Delete button
+        JButton btnDelete = new JButton("Xóa");
+        btnDelete.setBackground(new Color(244, 67, 54));
+        btnDelete.setForeground(Color.WHITE);
+        btnDelete.addActionListener(e -> delete());
+        pButtons.add(btnDelete);
+
+        // Clear form button
+        JButton btnClear = new JButton("Xóa form");
+        btnClear.addActionListener(e -> clearForm());
+        pButtons.add(btnClear);
+
+        pRight.add(pButtons);
+
+        add(pRight, BorderLayout.EAST);
     }
 
-    private void displayImage(String fileName) {
-    try {
-        if (fileName == null || fileName.isEmpty()) {
-            lblHinhAnh.setIcon(null);
-            lblHinhAnh.setText("No Image");
-            return;
-        }
-
-        // Tạo đường dẫn đến thư mục src/icon/
-        File file = new File("src/icon/" + fileName);
-        if (file.exists()) {
-            // Đọc ảnh và resize cho vừa khít với JLabel lblHinhAnh
-            ImageIcon icon = new ImageIcon(file.getAbsolutePath());
-            Image img = icon.getImage().getScaledInstance(lblHinhAnh.getWidth(), 
-                            lblHinhAnh.getHeight(), Image.SCALE_SMOOTH);
-            lblHinhAnh.setIcon(new ImageIcon(img));
-            lblHinhAnh.setText("");
-        } else {
-            lblHinhAnh.setIcon(null);
-            lblHinhAnh.setText("Ảnh không tồn tại");
-        }
-    } catch (Exception e) {
-        lblHinhAnh.setIcon(null);
-    }
-}
-
-    private void clearForm() {
-        txtId.setText("");
-        txtName.setText("");
-        txtPrice.setText("");
-        cbCategory.setSelectedIndex(0);
-        cbStatus.setSelectedIndex(0);
-        lblHinhAnh.setIcon(null);
-        lblHinhAnh.setToolTipText(null);
-        tblProduct.clearSelection();
-    }    
-    private void searchProduct() {
-    // 1. Lấy dữ liệu từ các ô nhập liệu (Sửa đúng tên biến của bạn: txtId, txtName)
-    String maSP = txtId.getText().trim().toLowerCase();
-    String tenSP = txtName.getText().trim().toLowerCase();
-    
-    // 2. Lấy loại sản phẩm từ ComboBox (Giả sử tên biến là cboLoaiSanPham)
-    String loaiSP = "";
-    if (cbCategory.getSelectedIndex() > 0) { 
-        // Lấy giá trị được chọn và chuyển về chữ thường để so sánh
-        loaiSP = cbCategory.getSelectedItem().toString().toLowerCase();
-    }
-    // 3. Nếu tất cả các ô tìm kiếm đều trống, tải lại toàn bộ bảng và thoát hàm
-    if (maSP.isEmpty() && tenSP.isEmpty() && loaiSP.isEmpty()) {
-        loadTable();
-        return;
+    // Helper method to create form labels
+    private JPanel createLabel(String text) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        panel.setBackground(new Color(245, 245, 245));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        panel.add(label);
+        return panel;
     }
 
-    // 4. Lấy danh sách sản phẩm mới nhất từ Service
-    List<Product> list = productService.getAllProducts();
-    tableModel.setRowCount(0); // Xóa trắng bảng để chuẩn bị đổ dữ liệu đã lọc
-
-    // 5. Vòng lặp lọc dữ liệu
-    for (Product p : list) {
-        // Chuyển ID (int) sang String để dùng hàm .contains()
-        String currentId = String.valueOf(p.getId()).toLowerCase();
-        
-        // Xử lý an toàn tránh lỗi Null cho Name và Category
-        String currentName = (p.getName() == null) ? "" : p.getName().toLowerCase();
-        String currentCate = (p.getCategory() == null) ? "" : p.getCategory().toLowerCase();
-
-        // Kiểm tra điều kiện tìm kiếm (Logic: Nếu ô tìm kiếm trống THÌ coi như khớp)
-        boolean matchMa = maSP.isEmpty() || currentId.contains(maSP);
-        boolean matchTen = tenSP.isEmpty() || currentName.contains(tenSP);
-        boolean matchLoai = loaiSP.isEmpty() || currentCate.equals(loaiSP);
-
-        // Chỉ thêm vào bảng nếu thỏa mãn TẤT CẢ các điều kiện (Tìm kiếm kết hợp)
-        if (matchMa && matchTen && matchLoai) {
-            tableModel.addRow(new Object[]{
-                p.getId(), 
-                p.getName(), 
-                p.getCategory(), 
-                p.getPrice(), 
-                p.getStatus()
+    // Load all products from database to table
+    private void loadData() {
+        tableModel.setRowCount(0);
+        List<Product> products = productService.getAllProducts();
+        for (Product p : products) {
+            tableModel.addRow(new Object[] {
+                    p.getId(),
+                    p.getName(),
+                    p.getCategory(),
+                    formatPrice(p.getPrice()),
+                    p.getStatus()
             });
         }
     }
-}
-    
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        lblId = new javax.swing.JLabel();
-        lblName = new javax.swing.JLabel();
-        lblCategory = new javax.swing.JLabel();
-        lblPrice = new javax.swing.JLabel();
-        lblStatus = new javax.swing.JLabel();
-        txtId = new javax.swing.JTextField();
-        txtName = new javax.swing.JTextField();
-        txtPrice = new javax.swing.JTextField();
-        cbCategory = new javax.swing.JComboBox<>();
-        cbStatus = new javax.swing.JComboBox<>();
-        btnAdd = new javax.swing.JButton();
-        btnUpdate = new javax.swing.JButton();
-        btnDelete = new javax.swing.JButton();
-        btnSearch = new javax.swing.JButton();
-        lblHinhAnh = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel8 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        tblProduct = new javax.swing.JTable();
-        btnShowAll = new javax.swing.JButton();
-
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel1.setText("QUẢN LÝ SẢN PHẨM ");
-        jLabel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        jPanel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-
-        jLabel2.setBackground(new java.awt.Color(153, 255, 153));
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel2.setText("THÔNG TIN SẢN PHẨM ");
-        jLabel2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        lblId.setText("Mã sản phẩm:");
-
-        lblName.setText("Tên sản phẩm:");
-
-        lblCategory.setText("Loại sản phẩm:");
-
-        lblPrice.setText("Giá bán:");
-
-        lblStatus.setText("Trạng thái:");
-
-        txtId.setActionCommand("null");
-
-        txtName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtNameActionPerformed(evt);
-            }
-        });
-
-        txtPrice.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtPriceActionPerformed(evt);
-            }
-        });
-
-        cbCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cà phê", "Trà", "Nước ngọt", "Bánh" }));
-
-        cbStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Đang bán", "Ngừng bán" }));
-        cbStatus.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cbStatusActionPerformed(evt);
-            }
-        });
-
-        btnAdd.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddActionPerformed(evt);
-            }
-        });
-
-        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUpdateActionPerformed(evt);
-            }
-        });
-
-        btnDelete.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteActionPerformed(evt);
-            }
-        });
-
-        btnSearch.setToolTipText("Nhập từ khóa để tìm kiếm sản phẩm");
-        btnSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSearchActionPerformed(evt);
-            }
-        });
-
-        lblHinhAnh.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        lblHinhAnh.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                lblHinhAnhMouseClicked(evt);
-            }
-        });
-
-        jLabel3.setText("Hình ảnh");
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel3)
-                .addGap(75, 75, 75))
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblCategory)
-                            .addComponent(lblStatus))
-                        .addGap(20, 20, 20)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(cbStatus, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cbCategory, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(41, 41, 41)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                .addComponent(lblName)
-                                .addGap(18, 18, 18))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lblId)
-                                    .addComponent(lblPrice))
-                                .addGap(20, 20, 20)))
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(txtId)
-                            .addComponent(txtName)
-                            .addComponent(txtPrice, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(85, 85, 85)
-                        .addComponent(lblHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(276, 276, 276)
-                        .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(lblId)
-                                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lblName)
-                                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(txtPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(lblPrice)))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(24, 24, 24)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel2Layout.createSequentialGroup()
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                            .addComponent(lblCategory)
-                                            .addComponent(cbCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(18, 18, 18)
-                                        .addComponent(lblStatus))
-                                    .addGroup(jPanel2Layout.createSequentialGroup()
-                                        .addGap(28, 28, 28)
-                                        .addComponent(cbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                        .addGap(33, 33, 33)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnAdd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnUpdate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnDelete, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(17, 17, 17)
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lblHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(36, Short.MAX_VALUE))
-        );
-
-        jLabel8.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel8.setText("DANH SÁCH SẢN PHẨM");
-        jLabel8.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        tblProduct.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
-            },
-            new String [] {
-                "Mã SP", "Tên sản phẩm", "Loại SP", "Giá bán", " Trạng thái", "Hình ảnh"
-            }
-        ));
-        tblProduct.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblProductMouseClicked(evt);
-            }
-        });
-        jScrollPane1.setViewportView(tblProduct);
-
-        btnShowAll.setText("Hiển thị tất cả danh sách");
-        btnShowAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnShowAllActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jLabel8)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnShowAll)
-                .addGap(28, 28, 28))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 706, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(22, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel8)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(btnShowAll)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(123, 123, 123))
-        );
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(100, 100, 100)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel1)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(136, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 352, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(96, Short.MAX_VALUE))
-        );
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void cbStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbStatusActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_cbStatusActionPerformed
-
-    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-    try {
-        Product p = new Product();
-        p.setName(txtName.getText().trim());
-        p.setCategory(cbCategory.getSelectedItem().toString());
-        p.setPrice(Double.parseDouble(txtPrice.getText().trim()));
-        p.setStatus(cbStatus.getSelectedItem().toString());
-        
-        String fileName = lblHinhAnh.getToolTipText();
-        p.setImage(fileName != null ? fileName : "default.png");
-
-        if (productService.insertProduct(p)) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Thêm sản phẩm thành công!");
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Thêm thất bại! Kiểm tra lại dữ liệu.");
-        }
-    } catch (NumberFormatException e) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Giá bán phải là số!");
+    // Format price with Vietnamese currency
+    private String formatPrice(double price) {
+        return String.format("%,.0fđ", price);
     }
-    // TODO add your handling code here:
-    }//GEN-LAST:event_btnAddActionPerformed
 
-    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-    try {
-        if (txtId.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần sửa!");
+    // Handle table row selection - populate form with selected data
+    private void selectRow() {
+        int row = tblProducts.getSelectedRow();
+        if (row >= 0) {
+            selectedId = (int) tableModel.getValueAt(row, 0);
+            txtName.setText((String) tableModel.getValueAt(row, 1));
+            cboCategory.setSelectedItem(tableModel.getValueAt(row, 2));
+
+            // Parse price from formatted string
+            String priceStr = (String) tableModel.getValueAt(row, 3);
+            priceStr = priceStr.replace("đ", "").replace(",", "").replace(".", "");
+            txtPrice.setText(priceStr);
+
+            cboStatus.setSelectedItem(tableModel.getValueAt(row, 4));
+
+            // Load image if available
+            List<Product> products = productService.getAllProducts();
+            for (Product p : products) {
+                if (p.getId() == selectedId && p.getImage() != null && !p.getImage().isEmpty()) {
+                    selectedImagePath = p.getImage();
+                    displayImage(selectedImagePath);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Display image in preview label
+    private void displayImage(String imagePath) {
+        try {
+            java.io.File file = new java.io.File("src/icon/" + imagePath);
+            if (file.exists()) {
+                ImageIcon icon = new ImageIcon(file.getAbsolutePath());
+                Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                lblImage.setIcon(new ImageIcon(img));
+                lblImage.setText("");
+            } else {
+                lblImage.setIcon(null);
+                lblImage.setText("Không tìm thấy");
+            }
+        } catch (Exception e) {
+            lblImage.setIcon(null);
+            lblImage.setText("Lỗi load ảnh");
+        }
+    }
+
+    // Choose image from file
+    private void chooseImage() {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter("Image files", "jpg", "jpeg", "png", "gif"));
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            java.io.File file = fc.getSelectedFile();
+            selectedImagePath = file.getName();
+
+            // Copy to icon folder
+            try {
+                java.io.File destDir = new java.io.File("src/icon");
+                if (!destDir.exists())
+                    destDir.mkdirs();
+                java.io.File dest = new java.io.File(destDir, file.getName());
+                java.nio.file.Files.copy(file.toPath(), dest.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                displayImage(selectedImagePath);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Không thể copy ảnh: " + e.getMessage());
+            }
+        }
+    }
+
+    // Clear all form fields and reset selection
+    private void clearForm() {
+        selectedId = -1;
+        txtName.setText("");
+        cboCategory.setSelectedIndex(0);
+        txtPrice.setText("");
+        cboStatus.setSelectedIndex(0);
+        selectedImagePath = "";
+        lblImage.setIcon(null);
+        lblImage.setText("Chưa có ảnh");
+        tblProducts.clearSelection();
+    }
+
+    // Get Product object from form fields with validation
+    private Product getFormData() throws Exception {
+        Product p = new Product();
+        p.setId(selectedId);
+
+        String name = txtName.getText().trim();
+        if (name.isEmpty()) {
+            throw new Exception("Vui lòng nhập tên sản phẩm!");
+        }
+        p.setName(name);
+
+        p.setCategory((String) cboCategory.getSelectedItem());
+
+        String priceStr = txtPrice.getText().trim().replace(",", "");
+        if (priceStr.isEmpty()) {
+            throw new Exception("Vui lòng nhập giá!");
+        }
+        try {
+            p.setPrice(Double.parseDouble(priceStr));
+        } catch (NumberFormatException e) {
+            throw new Exception("Giá không hợp lệ!");
+        }
+
+        p.setStatus((String) cboStatus.getSelectedItem());
+        p.setImage(selectedImagePath);
+
+        return p;
+    }
+
+    // Add new product to database
+    private void add() {
+        try {
+            Product p = getFormData();
+            if (productService.insertProduct(p)) {
+                JOptionPane.showMessageDialog(this, "Thêm sản phẩm thành công!");
+                loadData();
+                clearForm();
+            } else {
+                JOptionPane.showMessageDialog(this, "Thêm thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Update existing product in database
+    private void update() {
+        if (selectedId < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần sửa!", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        Product p = new Product();
-        p.setId(Integer.parseInt(txtId.getText()));
-        p.setName(txtName.getText().trim());
-        p.setCategory(cbCategory.getSelectedItem().toString());
-        p.setPrice(Double.parseDouble(txtPrice.getText().trim()));
-        p.setStatus(cbStatus.getSelectedItem().toString());
-        p.setImage(lblHinhAnh.getToolTipText());
-
-        if (productService.updateProduct(p)) {
-            JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
-            loadTable();
-        } else {
-            JOptionPane.showMessageDialog(this, "Cập nhật thất bại!");
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    }//GEN-LAST:event_btnUpdateActionPerformed
-
-    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-    if (txtId.getText().isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần xóa");
-        return;
-    }
-
-    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa sản phẩm này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
-    if (confirm == JOptionPane.YES_OPTION) {
-        int id = Integer.parseInt(txtId.getText());
-        if (productService.deleteProduct(id)) {
-            loadTable();
-            clearForm();
-            JOptionPane.showMessageDialog(this, "Xóa thành công");
-        } else {
-            JOptionPane.showMessageDialog(this, "Xóa thất bại");
-        }
-    }
-    }//GEN-LAST:event_btnDeleteActionPerformed
-
-    private void tblProductMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblProductMouseClicked
-    int row = tblProduct.getSelectedRow();
-    if (row < 0) return;
-
-    // Đổ dữ liệu lên các ô text/combobox
-    txtId.setText(tblProduct.getValueAt(row, 0).toString());
-    txtName.setText(tblProduct.getValueAt(row, 1).toString());
-    cbCategory.setSelectedItem(tblProduct.getValueAt(row, 2).toString());
-    txtPrice.setText(tblProduct.getValueAt(row, 3).toString());
-    cbStatus.setSelectedItem(tblProduct.getValueAt(row, 4).toString());
-
-    Object cellValue = tblProduct.getValueAt(row, 5); 
-    if (cellValue != null) {
-        String fileName = cellValue.toString();
-        // Lưu tên file vào ToolTip để khi bấm "Sửa" có thể lấy lại
-        lblHinhAnh.setToolTipText(fileName); 
-        
-        // Gọi XImage để resize ảnh vừa khít với khung JLabel
-        ImageIcon photo = com.cafe.service.XImage.getResizedIcon(fileName, 
-                          lblHinhAnh.getWidth(), lblHinhAnh.getHeight());
-        lblHinhAnh.setIcon(photo);
-        lblHinhAnh.setText(photo == null ? "Không có ảnh" : "");
-    }
-// TODO add your handling code here:
-    }//GEN-LAST:event_tblProductMouseClicked
-
-    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-searchProduct();
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnSearchActionPerformed
-
-    private void txtNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtNameActionPerformed
-
-    private void txtPriceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPriceActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtPriceActionPerformed
-
-    private void lblHinhAnhMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblHinhAnhMouseClicked
-    JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setDialogTitle("Chọn ảnh sản phẩm");
-    
-    // Filter hiển thị file ảnh (nhưng vẫn cho phép xem tất cả file)
-    fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-        "Image files (*.jpg, *.png, *.gif)", "jpg", "jpeg", "png", "gif"));
-    fileChooser.setAcceptAllFileFilterUsed(true);  // Cho phép chọn "All Files"
-    
-    if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-        File sourceFile = fileChooser.getSelectedFile();
-        String fileName = sourceFile.getName();
-        File destFile = new File("src/icon/" + fileName);
-        
         try {
-            // Chỉ copy nếu file chưa tồn tại
-            if (!destFile.exists()) {
-                if (!destFile.getParentFile().exists()) {
-                    destFile.getParentFile().mkdirs();
-                }
-                Files.copy(sourceFile.toPath(), destFile.toPath());
+            Product p = getFormData();
+            if (productService.updateProduct(p)) {
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
+                loadData();
+                clearForm();
+            } else {
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
-            
-            lblHinhAnh.setToolTipText(fileName);
-            displayImage(fileName);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    }//GEN-LAST:event_lblHinhAnhMouseClicked
+    // Delete selected product from database
+    private void delete() {
+        if (selectedId < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần xóa!", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa sản phẩm này?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (productService.deleteProduct(selectedId)) {
+                    JOptionPane.showMessageDialog(this, "Xóa thành công!");
+                    loadData();
+                    clearForm();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
-    private void btnShowAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowAllActionPerformed
-    loadTable();
-    clearForm();
-    System.out.println("Đã cập nhật lại toàn bộ danh sách sản phẩm.");
-  // TODO add your handling code here:
-    }//GEN-LAST:event_btnShowAllActionPerformed
+    // Search products by keyword
+    private void search() {
+        String keyword = txtSearch.getText().trim().toLowerCase();
+        tableModel.setRowCount(0);
+        List<Product> products = productService.getAllProducts();
+        for (Product p : products) {
+            if (p.getName().toLowerCase().contains(keyword) ||
+                    String.valueOf(p.getId()).contains(keyword)) {
+                tableModel.addRow(new Object[] {
+                        p.getId(),
+                        p.getName(),
+                        p.getCategory(),
+                        formatPrice(p.getPrice()),
+                        p.getStatus()
+                });
+            }
+        }
+    }
 
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAdd;
-    private javax.swing.JButton btnDelete;
-    private javax.swing.JButton btnSearch;
-    private javax.swing.JButton btnShowAll;
-    private javax.swing.JButton btnUpdate;
-    private javax.swing.JComboBox<String> cbCategory;
-    private javax.swing.JComboBox<String> cbStatus;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lblCategory;
-    private javax.swing.JLabel lblHinhAnh;
-    private javax.swing.JLabel lblId;
-    private javax.swing.JLabel lblName;
-    private javax.swing.JLabel lblPrice;
-    private javax.swing.JLabel lblStatus;
-    private javax.swing.JTable tblProduct;
-    private javax.swing.JTextField txtId;
-    private javax.swing.JTextField txtName;
-    private javax.swing.JTextField txtPrice;
-    // End of variables declaration//GEN-END:variables
-
+    // Filter products by category
+    private void filterByCategory(String category) {
+        if ("Tất cả".equals(category)) {
+            loadData();
+            return;
+        }
+        tableModel.setRowCount(0);
+        List<Product> products = productService.getProductsByCategory(category);
+        for (Product p : products) {
+            tableModel.addRow(new Object[] {
+                    p.getId(),
+                    p.getName(),
+                    p.getCategory(),
+                    formatPrice(p.getPrice()),
+                    p.getStatus()
+            });
+        }
+    }
 }

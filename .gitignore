@@ -1,7 +1,10 @@
 /build/
 /dist/
+/out/
 /nbproject/private/
 /*.class
 .idea/
 .vscode/
 *.iml
+*.puml
+*.md

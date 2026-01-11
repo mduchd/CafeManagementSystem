@@ -49,7 +49,7 @@ public class MainFrame extends javax.swing.JFrame {
         pContent.add(salesPanel, "SALES");
         pContent.add(new com.cafe.view.table.TablePanel(), "TABLES"); // TablePanel from sonvu
         pContent.add(new ProductPanel(), "PRODUCTS"); // ProductPanel from HEAD
-        pContent.add(new com.cafe.view.warehouse.ImportPanel(), "WAREHOUSE");
+        pContent.add(new com.cafe.view.warehouse.WarehousePanel(), "WAREHOUSE");
         pContent.add(new StatsPanel(), "STATS");
         pContent.add(new com.cafe.view.employee.EmployeePanel(), "EMPLOYEES");
         pContent.add(new com.cafe.view.account.AccountPanel(), "ACCOUNTS");
@@ -62,7 +62,7 @@ public class MainFrame extends javax.swing.JFrame {
         // Style logo - thay đổi layout để căn giữa
         pLogo.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 30)); // Căn giữa với padding top 30
         pLogo.removeAll();
-        
+
         try {
             jLabel1.setIcon(com.cafe.service.XImage.getResizedIcon("logo.png", 30, 30));
         } catch (Exception e) {
@@ -72,18 +72,18 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
         jLabel1.setIconTextGap(8);
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        
+
         pLogo.add(jLabel1); // Thêm lại label vào panel
 
         // Setup menu buttons
         setupMenuButton(btnSales, "Bán hàng", "SALES");
         setupMenuButton(btnTables, "Bàn", "TABLES");
         setupMenuButton(btnProduct, "Sản phẩm", "PRODUCTS");
-//        setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
+        // setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
         setupMenuButton(btnStats, "Thống kê", "STATS");
         setupMenuButton(btnEmployee, "Nhân viên", "EMPLOYEES");
         setupMenuButton(btnAccount, "Tài khoản", "ACCOUNTS");
-        
+
         // Setup Warehouse button với CardLayout (giống các button khác)
         setupMenuButton(btnWarehouse, "Kho", "WAREHOUSE");
         // Setup role indicator panel at bottom of sidebar
@@ -406,10 +406,4 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel pMenu;
     private javax.swing.JPanel pSidebar;
     // End of variables declaration//GEN-END:variables
-
-    private void openImportDialog() {
-        ImportDialog dialog = new ImportDialog(this, true);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
 }
