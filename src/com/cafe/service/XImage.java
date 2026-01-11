@@ -11,7 +11,6 @@ public class XImage {
             File file = new File("src/icon/" + fileName);
             
             if (!file.exists()) {
-                System.out.println("Không tìm thấy file: " + file.getAbsolutePath());
                 return null;
             }
             

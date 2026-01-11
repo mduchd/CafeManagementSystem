@@ -1,6 +1,6 @@
 package com.cafe.view.warehouse;
 
-import com.cafe.database.DBConnection;
+import com.cafe.config.DatabaseConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -160,7 +160,7 @@ public class ExportPanel extends JPanel {
         tableModel.setRowCount(0);
         String sql = "SELECT export_id, ingredient_name, quantity, export_date FROM tbl_export ORDER BY export_id DESC";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(sql)) {
 
@@ -191,7 +191,7 @@ public class ExportPanel extends JPanel {
                         (SELECT IFNULL(SUM(quantity), 0) FROM tbl_export WHERE ingredient_name = ?) AS stock
                 """;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, ingredient);
@@ -245,7 +245,7 @@ public class ExportPanel extends JPanel {
 
             String sql = "INSERT INTO tbl_export (ingredient_name, quantity, export_date) VALUES (?, ?, NOW())";
 
-            try (Connection conn = DBConnection.getConnection();
+            try (Connection conn = DatabaseConnection.getConnection();
                     PreparedStatement ps = conn.prepareStatement(sql)) {
 
                 ps.setString(1, ingredient);
@@ -270,7 +270,7 @@ public class ExportPanel extends JPanel {
                         (SELECT IFNULL(SUM(quantity), 0) FROM tbl_export WHERE ingredient_name = ?) AS stock
                 """;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, ingredient);
@@ -297,7 +297,7 @@ public class ExportPanel extends JPanel {
         if (confirm == JOptionPane.YES_OPTION) {
             String sql = "DELETE FROM tbl_export WHERE export_id = ?";
 
-            try (Connection conn = DBConnection.getConnection();
+            try (Connection conn = DatabaseConnection.getConnection();
                     PreparedStatement ps = conn.prepareStatement(sql)) {
 
                 ps.setInt(1, selectedId);

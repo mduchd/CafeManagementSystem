@@ -34,15 +34,15 @@ public class LoginFrame extends javax.swing.JFrame {
                 java.awt.Image scaledImage = icon.getImage().getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH);
                 lblLogo.setIcon(new javax.swing.ImageIcon(scaledImage));
             } else {
-                // Fallback to coffee emoji if image not found
-                lblLogo.setText("☕");
-                lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 80));
+                // Fallback to text if image not found
+                lblLogo.setText("CAFE");
+                lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 48));
                 lblLogo.setForeground(new java.awt.Color(255, 255, 255));
             }
         } catch (Exception e) {
-            // Fallback to coffee emoji if error
-            lblLogo.setText("☕");
-            lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 80));
+            // Fallback to text if error
+            lblLogo.setText("CAFE");
+            lblLogo.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 48));
             lblLogo.setForeground(new java.awt.Color(255, 255, 255));
         }
 

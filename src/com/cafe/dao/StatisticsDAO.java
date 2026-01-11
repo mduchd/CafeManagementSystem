@@ -66,7 +66,7 @@ public class StatisticsDAO {
                 bestSeller = rs.getString("TenSP");
             }
         } catch (Exception e) {
-            System.out.println("Lỗi tìm món bán chạy (Check lại tên cột bảng sanpham/chitiethoadon): " + e.getMessage());
+            e.printStackTrace();
         }
         return bestSeller;
     }
@@ -88,9 +88,7 @@ public class StatisticsDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            // Debug: In ra console để chắc chắn code chạy
-            System.out.println("SQL đang chạy: " + sql);
-            
+
             ps.setTimestamp(1, fromDate);
             ps.setTimestamp(2, toDate);
             ResultSet rs = ps.executeQuery();

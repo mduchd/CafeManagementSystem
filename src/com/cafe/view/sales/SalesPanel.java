@@ -909,6 +909,7 @@ public class SalesPanel extends javax.swing.JPanel {
         // Wrap pTablesGrid in ScrollPane
         jScrollPane3.setViewportView(pTablesGrid);
         jScrollPane3.setBorder(null);
+        jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         pTableArea.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
         // Create Legend Panel

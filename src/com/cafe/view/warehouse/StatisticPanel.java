@@ -1,6 +1,6 @@
 package com.cafe.view.warehouse;
 
-import com.cafe.database.DBConnection;
+import com.cafe.config.DatabaseConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -132,7 +132,7 @@ public class StatisticPanel extends JPanel {
         int totalExport = 0;
         double totalValue = 0;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(sql)) {
 

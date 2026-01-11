@@ -1,62 +1,62 @@
-# Kiến trúc Cafe Management System
+﻿# Kien truc Cafe Management System
 
-## 🎯 Nguyên tắc thiết kế
+## Nguyen tac thiet ke
 
-✅ **1 MainFrame duy nhất** - Sử dụng CardLayout để chuyển đổi giữa các panel  
-✅ **Phân quyền bằng UI** - Ẩn/hiện menu dựa trên role, không tạo frame mới  
-✅ **Code đơn giản** - Phù hợp với dự án nhỏ, tránh over-engineering  
+- 1 MainFrame duy nhat - Su dung CardLayout de chuyen doi giua cac panel
+- Phan quyen bang UI - An/hien menu dua tren role, khong tao frame moi
+- Code don gian - Phu hop voi du an nho, tranh over-engineering
 
-## 📁 Cấu trúc thư mục
+## Cau truc thu muc
 
-```
+`
 src/com/cafe/
 ├── main/
-│   ├── Main.java              ← Entry point (khởi chạy LoginFrame)
-│   └── DBTestMain.java         ← Test database connection
+│   └── Main.java              - Entry point
 ├── model/
-│   ├── User.java              ← User entity
-│   ├── Product.java           ← Product entity
-│   └── UserRole.java          ← Enum: MANAGER, STAFF
+│   ├── User.java              - User entity
+│   ├── Product.java           - Product entity  
+│   └── UserRole.java          - Enum: MANAGER, STAFF
 ├── service/
-│   ├── UserSession.java       ← Quản lý session (static methods)
-│   ├── AuthService.java       ← Xác thực đăng nhập
-│   └── ProductService.java    ← Business logic cho Product
+│   ├── UserSession.java       - Quan ly session
+│   ├── AuthService.java       - Xac thuc dang nhap
+│   └── ProductService.java    - Business logic
 ├── dao/
-│   ├── AuthDAO.java           ← Database access cho User
-│   └── ProductDAO.java        ← Database access cho Product
+│   ├── AuthDAO.java           - Database access cho User
+│   └── ProductDAO.java        - Database access cho Product
 └── view/
     ├── login/
-    │   ├── LoginFrame.java    ← Màn hình đăng nhập
-    │   └── ChangePassDialog.java
+    │   └── LoginFrame.java    - Man hinh dang nhap
     ├── main/
-    │   └── MainFrame.java     ← Main window DUY NHẤT (CardLayout)
-    └── sales/
-        └── SalesPanel.java    ← Panel bán hàng
-```
+    │   └── MainFrame.java     - Main window (CardLayout)
+    ├── sales/
+    │   └── SalesPanel.java    - Panel ban hang
+    └── warehouse/
+        └── WarehousePanel.java - Panel quan ly kho
+`
 
-## 🔄 Luồng hoạt động
+## Luong hoat dong
 
-```
+`
 1. Main.java
-   ↓
-2. LoginFrame (đăng nhập)
-   ↓
+   |
+2. LoginFrame (dang nhap)
+   |
 3. UserSession.setCurrentUser(user)
-   ↓
-4. MainFrame (hiển thị theo role)
-   ├─ MANAGER → Sidebar + All Panels
-   └─ STAFF   → Chỉ SalesPanel (no sidebar)
-```
+   |
+4. MainFrame (hien thi theo role)
+   ├─ MANAGER - Sidebar + All Panels
+   └─ STAFF   - Chi SalesPanel
+`
 
-## 🎨 MainFrame - CardLayout Architecture
+## MainFrame - CardLayout Architecture
 
-### Cấu trúc MainFrame
+### Cau truc MainFrame
 
-```
+`
 MainFrame (BorderLayout)
-├── pSidebar (WEST) - Chỉ hiện với MANAGER
+├── pSidebar (WEST) - Chi hien voi MANAGER
 │   ├── pLogo (TOP)
-│   ├── pMenu (CENTER) - BoxLayout
+│   ├── pMenu (CENTER)
 │   │   ├── btnSales
 │   │   ├── btnTables
 │   │   ├── btnProduct
@@ -64,43 +64,37 @@ MainFrame (BorderLayout)
 │   │   ├── btnStats
 │   │   └── btnEmployee
 │   └── pRoleIndicator (BOTTOM)
-│       ├── lblRole (username + role)
+│       ├── lblRole
 │       └── btnLogout
 └── pContent (CENTER) - CardLayout
-    ├── "SALES" → SalesPanel
-    ├── "TABLES" → TablesPanel (placeholder)
-    ├── "PRODUCTS" → ProductsPanel (placeholder)
-    ├── "WAREHOUSE" → WarehousePanel (placeholder)
-    ├── "STATS" → StatsPanel (placeholder)
-    └── "EMPLOYEES" → EmployeesPanel (placeholder)
-```
+    ├── SALES -> SalesPanel
+    ├── PRODUCTS -> ProductPanel
+    ├── WAREHOUSE -> WarehousePanel
+    ├── STATS -> StatsPanel
+    └── EMPLOYEES -> EmployeePanel
+`
 
-### Phân quyền trong MainFrame
+### Phan quyen trong MainFrame
 
-#### MANAGER Role
-```java
+MANAGER Role:
+`java
 if (UserSession.isManager()) {
-    pSidebar.setVisible(true);  // Hiện sidebar
-    // Hiện tất cả menu buttons
-    btnSales.setVisible(true);
-    btnTables.setVisible(true);
-    btnProduct.setVisible(true);
-    // ... tất cả buttons
+    pSidebar.setVisible(true);  // Hien sidebar
+    // Hien tat ca menu buttons
 }
-```
+`
 
-#### STAFF Role
-```java
+STAFF Role:
+`java
 if (UserSession.isStaff()) {
-    pSidebar.setVisible(false);  // Ẩn sidebar
-    cardLayout.show(pContent, "SALES");  // Chỉ hiện SalesPanel
-    addStaffLogoutButton();  // Thêm nút logout ở góc phải
+    pSidebar.setVisible(false);  // An sidebar
+    cardLayout.show(pContent, "SALES");  // Chi hien SalesPanel
 }
-```
+`
 
-## 🔐 UserSession - Simple Static Class
+## UserSession - Simple Static Class
 
-```java
+`java
 public class UserSession {
     private static User currentUser;
     
@@ -110,37 +104,19 @@ public class UserSession {
     public static boolean isManager() { ... }
     public static boolean isStaff() { ... }
 }
-```
+`
 
-**Không dùng Singleton pattern** - Giữ đơn giản với static methods
+## Quy tac phat trien
 
-## ✅ Những gì ĐÃ XÓA (không cần thiết)
+1. Them panel moi: Tao panel trong view/ va add vao CardLayout
+2. Phan quyen: Chinh sua MainFrame.applyRolePermissions()
+3. Khong tao JFrame moi: Moi man hinh deu la JPanel trong CardLayout
+4. Giu code don gian
 
-❌ MainManager.java - Thay bằng phân quyền trong MainFrame  
-❌ MainStaff.java - Thay bằng phân quyền trong MainFrame  
-❌ Nhiều JFrame riêng biệt - Chỉ dùng 1 MainFrame + CardLayout  
+## Uu diem cua kien truc nay
 
-## 🚀 Cách chạy ứng dụng
-
-```bash
-# Compile
-javac -encoding UTF-8 -d build -sourcepath src src/com/cafe/main/Main.java
-
-# Run
-java -cp build com.cafe.main.Main
-```
-
-## 📝 Quy tắc phát triển
-
-1. **Thêm panel mới**: Tạo panel trong `view/` và add vào CardLayout trong `MainFrame.initCustomLogic()`
-2. **Phân quyền**: Chỉnh sửa `MainFrame.applyRolePermissions()` để ẩn/hiện menu
-3. **Không tạo JFrame mới**: Mọi màn hình đều là JPanel trong CardLayout
-4. **Giữ code đơn giản**: Đây là dự án nhỏ, tránh over-engineering
-
-## 🎯 Ưu điểm của kiến trúc này
-
-✅ **Đơn giản** - Dễ hiểu, dễ maintain  
-✅ **Linh hoạt** - Dễ thêm panel mới  
-✅ **Hiệu quả** - Chỉ 1 window, không tốn tài nguyên  
-✅ **Rõ ràng** - Phân quyền tập trung tại 1 chỗ  
-✅ **Mở rộng** - Dễ thêm role mới hoặc panel mới  
+- Don gian - De hieu, de maintain
+- Linh hoat - De them panel moi
+- Hieu qua - Chi 1 window
+- Ro rang - Phan quyen tap trung
+- Mo rong - De them role moi

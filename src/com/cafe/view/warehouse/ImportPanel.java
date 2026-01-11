@@ -1,6 +1,6 @@
 package com.cafe.view.warehouse;
 
-import com.cafe.database.DBConnection;
+import com.cafe.config.DatabaseConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -181,7 +181,7 @@ public class ImportPanel extends JPanel {
         cboSupplier.removeAllItems();
         String sql = "SELECT supplier_id, supplier_name FROM tbl_supplier";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(sql)) {
 
@@ -202,7 +202,7 @@ public class ImportPanel extends JPanel {
                     ORDER BY i.import_id DESC
                 """;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(sql)) {
 
@@ -228,7 +228,7 @@ public class ImportPanel extends JPanel {
 
         String sql = "SELECT IFNULL(SUM(quantity), 0) AS stock FROM tbl_import WHERE ingredient_name = ?";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, ingredient);
@@ -280,7 +280,7 @@ public class ImportPanel extends JPanel {
 
             String sql = "INSERT INTO tbl_import (ingredient_name, quantity, price, supplier_id) VALUES (?, ?, ?, ?)";
 
-            try (Connection conn = DBConnection.getConnection();
+            try (Connection conn = DatabaseConnection.getConnection();
                     PreparedStatement ps = conn.prepareStatement(sql)) {
 
                 ps.setString(1, ingredient);
@@ -312,7 +312,7 @@ public class ImportPanel extends JPanel {
         if (confirm == JOptionPane.YES_OPTION) {
             String sql = "DELETE FROM tbl_import WHERE import_id = ?";
 
-            try (Connection conn = DBConnection.getConnection();
+            try (Connection conn = DatabaseConnection.getConnection();
                     PreparedStatement ps = conn.prepareStatement(sql)) {
 
                 ps.setInt(1, selectedId);

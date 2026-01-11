@@ -57,4 +57,9 @@ public class ProductService {
     public int getProductIdByName(String name) {
         return productDAO.getProductIdByName(name);
     }
+    
+    // Lọc sản phẩm theo loại
+    public List<Product> getProductsByCategory(String category) {
+        return productDAO.findByCategory(category);
+    }
 }

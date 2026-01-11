@@ -1,6 +1,6 @@
 package com.cafe.view.warehouse;
 
-import com.cafe.database.DBConnection;
+import com.cafe.config.DatabaseConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -180,7 +180,7 @@ public class SupplierPanel extends JPanel {
         tableModel.setRowCount(0);
         String sql = "SELECT * FROM tbl_supplier ORDER BY supplier_id";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(sql)) {
 
@@ -230,7 +230,7 @@ public class SupplierPanel extends JPanel {
 
         String sql = "INSERT INTO tbl_supplier (supplier_name, address, phone) VALUES (?, ?, ?)";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, name);
@@ -265,7 +265,7 @@ public class SupplierPanel extends JPanel {
 
         String sql = "UPDATE tbl_supplier SET supplier_name = ?, address = ?, phone = ? WHERE supplier_id = ?";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, name);
@@ -295,7 +295,7 @@ public class SupplierPanel extends JPanel {
         if (confirm == JOptionPane.YES_OPTION) {
             String sql = "DELETE FROM tbl_supplier WHERE supplier_id = ?";
 
-            try (Connection conn = DBConnection.getConnection();
+            try (Connection conn = DatabaseConnection.getConnection();
                     PreparedStatement ps = conn.prepareStatement(sql)) {
 
                 ps.setInt(1, selectedId);
@@ -318,7 +318,7 @@ public class SupplierPanel extends JPanel {
 
         String sql = "SELECT * FROM tbl_supplier WHERE LOWER(supplier_name) LIKE ? OR phone LIKE ? ORDER BY supplier_id";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, "%" + keyword + "%");

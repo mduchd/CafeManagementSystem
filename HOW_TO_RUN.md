@@ -1,130 +1,47 @@
-# Hướng dẫn chạy và test UI
+﻿# Huong dan chay ung dung
 
-## 🚀 Cách chạy ứng dụng
+## Yeu cau he thong
 
-### 1. Compile
-```bash
-javac -encoding UTF-8 -d build -sourcepath src src\com\cafe\main\Main.java
-```
+- JDK 8 hoac cao hon
+- MySQL (XAMPP)
+- NetBeans IDE
 
-### 2. Chạy
-```bash
-java -cp build com.cafe.main.Main
-```
+## Buoc 1: Cai dat Database
 
-## 👤 Tài khoản đăng nhập
+1. Cai dat XAMPP
+2. Start Apache va MySQL
+3. Truy cap http://localhost/phpmyadmin
+4. Tao database: cafedb
+5. Import file: src/database/database.sql
 
-### ✅ Để thấy SIDEBAR (Full UI):
-Đăng nhập với tài khoản có **Role = "admin"** hoặc **"manager"**
+## Buoc 2: Mo project
 
-**Ví dụ trong database:**
-```sql
--- Kiểm tra tài khoản admin/manager
-SELECT Username, Role, TenHienThi FROM taikhoan WHERE Role IN ('admin', 'manager');
-```
+1. Mo NetBeans
+2. File - Open Project
+3. Chon thu muc CafeManagementSystem
 
-**Nếu chưa có, tạo tài khoản admin:**
-```sql
-INSERT INTO taikhoan (Username, Password, Role, TenHienThi) 
-VALUES ('admin', '123', 'admin', 'Quản lý');
-```
+## Buoc 3: Them JDBC Driver
 
-**Sau đó đăng nhập:**
-- Username: `admin`
-- Password: `123`
+1. Click phai vao Libraries
+2. Chon Add JAR/Folder
+3. Chon file lib/mysql-connector-java-8.0.27.jar
 
-→ **Sẽ thấy sidebar với đầy đủ menu**
+## Buoc 4: Chay ung dung
 
-### ⚠️ Để thấy UI không có sidebar:
-Đăng nhập với tài khoản có **Role = "staff"** hoặc bất kỳ role nào khác
+1. Mo src/com/cafe/main/Main.java
+2. Nhan Shift + F6
 
-**Ví dụ:**
-```sql
-INSERT INTO taikhoan (Username, Password, Role, TenHienThi) 
-VALUES ('nhanvien', '123', 'staff', 'Nhân viên Demo');
-```
+## Tai khoan mac dinh
 
-**Đăng nhập:**
-- Username: `nhanvien`
-- Password: `123`
+- Username: admin
+- Password: 123
 
-→ **Chỉ thấy SalesPanel, không có sidebar**
+## Khac phuc loi thuong gap
 
-## 🎨 So sánh UI
+### Loi ket noi database
+- Kiem tra MySQL da start trong XAMPP
+- Kiem tra database cafedb ton tai
+- Kiem tra file DatabaseConnection.java co dung thong tin
 
-### MANAGER/ADMIN (có sidebar):
-```
-┌────────────────────────────────────────────────────────┐
-│  ┌──────────────┬──────────────────────────────────┐  │
-│  │   SIDEBAR    │      CONTENT AREA                │  │
-│  │              │                                   │  │
-│  │  ☕ Logo     │                                   │  │
-│  │              │      [Panel hiện tại]            │  │
-│  │  📊 Bán hàng │                                   │  │
-│  │  🪑 Bàn      │                                   │  │
-│  │  🍔 Sản phẩm │                                   │  │
-│  │  📦 Kho      │                                   │  │
-│  │  📈 Thống kê │                                   │  │
-│  │  👥 Nhân viên│                                   │  │
-│  │              │                                   │  │
-│  │  ─────────── │                                   │  │
-│  │  Quản lý     │                                   │  │
-│  │  [Đăng xuất] │                                   │  │
-│  └──────────────┴──────────────────────────────────┘  │
-└────────────────────────────────────────────────────────┘
-```
-
-### STAFF (không có sidebar):
-```
-┌────────────────────────────────────────────────────────┐
-│  Nhân viên Demo (Nhân viên)         [Đăng xuất]        │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │                                                   │  │
-│  │              SalesPanel (toàn màn hình)          │  │
-│  │                                                   │  │
-│  └──────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────┘
-```
-
-## 🔍 Kiểm tra Role trong code
-
-Code phân quyền trong `UserSession.java`:
-```java
-public static boolean isManager() {
-    if (currentUser == null) return false;
-    String role = currentUser.getRole();
-    return role != null && 
-           (role.equalsIgnoreCase("admin") || 
-            role.equalsIgnoreCase("manager"));
-}
-
-public static boolean isStaff() {
-    return !isManager();
-}
-```
-
-**Quy tắc:**
-- Role = "admin" hoặc "manager" → **isManager() = true** → Hiện sidebar
-- Role = bất kỳ giá trị khác → **isStaff() = true** → Ẩn sidebar
-
-## 📝 Checklist
-
-- [ ] Database đã có bảng `taikhoan`
-- [ ] Có ít nhất 1 tài khoản với Role = "admin" hoặc "manager"
-- [ ] Compile thành công
-- [ ] Chạy Main.java
-- [ ] Màn hình LoginFrame hiện ra
-- [ ] Đăng nhập với tài khoản admin
-- [ ] **Thấy MainFrame với sidebar bên trái** ✅
-
-## 🐛 Troubleshooting
-
-### Không thấy sidebar?
-1. Kiểm tra Role trong database: `SELECT Role FROM taikhoan WHERE Username = 'your_username'`
-2. Đảm bảo Role = "admin" hoặc "manager" (không phân biệt hoa thường)
-3. Kiểm tra console có lỗi gì không
-
-### Lỗi kết nối database?
-1. Kiểm tra `DatabaseConnection.java`
-2. Đảm bảo SQL Server đang chạy
-3. Kiểm tra connection string
+### Loi thieu thu vien
+- Kiem tra da add mysql-connector-java vao Libraries

@@ -84,6 +84,7 @@ public class TablePanel extends JPanel {
         });
 
         JScrollPane scrollPane = new JScrollPane(tblTables);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         pCenter.add(scrollPane, BorderLayout.CENTER);
         add(pCenter, BorderLayout.CENTER);
 
