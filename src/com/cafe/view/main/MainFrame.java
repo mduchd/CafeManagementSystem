@@ -1,4 +1,3 @@
-
 package com.cafe.view.main;
 
 import com.cafe.view.sales.SalesPanel;
@@ -7,10 +6,6 @@ import com.cafe.service.UserSession;
 import com.cafe.view.statistics.StatsPanel;
 import com.cafe.view.warehouse.ImportDialog;
 
-/**
- *
- * @author Owner
- */
 public class MainFrame extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -139,7 +134,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnLogout.addActionListener(e -> {
             UserSession.clear();
             dispose();
-            // TODO: Show login screen
+            new com.cafe.view.login.LoginFrame().setVisible(true);
         });
         pButtons.add(btnLogout);
 
@@ -207,11 +202,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnStaffLogout.addActionListener(e -> {
             UserSession.clear();
             dispose();
-            // TODO: Show login screen
-            javax.swing.JOptionPane.showMessageDialog(null,
-                    "Đã đăng xuất. Vui lòng đăng nhập lại.",
-                    "Đăng xuất",
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            new com.cafe.view.login.LoginFrame().setVisible(true);
         });
         pStaffLogout.add(btnStaffLogout);
 

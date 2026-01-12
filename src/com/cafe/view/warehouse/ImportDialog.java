@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JDialog.java to edit this template
- */
 package com.cafe.view.warehouse;
 
-/**
- *
- * @author Owner
- */
 public class ImportDialog extends javax.swing.JDialog {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -95,7 +87,6 @@ public class ImportDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSupplierActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnSupplierActionPerformed
-        // TODO add your handling code here:
         contentPanel.removeAll();
         contentPanel.add(new SupplierPanel());
         contentPanel.revalidate();
@@ -103,7 +94,6 @@ public class ImportDialog extends javax.swing.JDialog {
     }// GEN-LAST:event_btnSupplierActionPerformed
 
     private void btnImportActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnImportActionPerformed
-        // TODO add your handling code here:
         contentPanel.removeAll();
         contentPanel.add(new ImportPanel());
         contentPanel.revalidate();
@@ -111,7 +101,6 @@ public class ImportDialog extends javax.swing.JDialog {
     }// GEN-LAST:event_btnImportActionPerformed
 
     private void btnExportActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnExportActionPerformed
-        // TODO add your handling code here:
         contentPanel.removeAll();
         contentPanel.add(new ExportPanel());
         contentPanel.revalidate();
@@ -119,7 +108,6 @@ public class ImportDialog extends javax.swing.JDialog {
     }// GEN-LAST:event_btnExportActionPerformed
 
     private void btnStatisticActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnStatisticActionPerformed
-        // TODO add your handling code here:
         contentPanel.removeAll();
         contentPanel.add(new StatisticPanel());
         contentPanel.revalidate();

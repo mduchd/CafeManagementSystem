@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package com.cafe.view.statistics;
 
 import com.cafe.dao.StatisticsDAO;
@@ -17,17 +13,11 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.text.MessageFormat; // Để tạo tiêu đề khi in
-import javax.swing.JTable;      // Để dùng tính năng in của bảng
-/**
- *
- * @author Owner
- */
+import java.text.MessageFormat;
+import javax.swing.JTable;
+
 public class StatsPanel extends javax.swing.JPanel {
 
-    /**
-     * Creates new form StatsPanel
-     */
     //Màu sắc
     private final Color COLOR_BACKGROUND = new Color(240, 240, 240);
     private final Color COLOR_TEXT = new Color(50, 50, 50);
@@ -152,24 +142,166 @@ public class StatsPanel extends javax.swing.JPanel {
             return;
         }
 
-        try {
-            // 2. Tạo tiêu đề và chân trang cho bản in
-            MessageFormat header = new MessageFormat("Báo cáo Doanh thu - Java Coffee");
-            MessageFormat footer = new MessageFormat("Trang {0,number,integer}");
+        // 2. Tạo cửa sổ xem trước
+        JDialog previewDialog = new JDialog();
+        previewDialog.setTitle("Xem trước báo cáo");
+        previewDialog.setModal(true);
+        previewDialog.setSize(650, 750);
+        previewDialog.setLocationRelativeTo(this);
+        previewDialog.setLayout(new BorderLayout());
 
-            // 3. Gọi lệnh in mặc định của Java Swing
-            // FIT_WIDTH: Tự động co bảng lại cho vừa khổ giấy A4
-            boolean complete = table.print(JTable.PrintMode.FIT_WIDTH, header, footer);
+        // 3. Panel nội dung báo cáo - dùng BorderLayout thay vì BoxLayout
+        JPanel reportPanel = new JPanel(new BorderLayout(0, 15));
+        reportPanel.setBackground(Color.WHITE);
+        reportPanel.setBorder(new EmptyBorder(25, 40, 25, 40));
 
-            if (complete) {
-                JOptionPane.showMessageDialog(this, "Đã in thành công!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Đã hủy lệnh in.");
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi in: " + e.getMessage());
-            e.printStackTrace();
+        // === HEADER SECTION ===
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBackground(Color.WHITE);
+
+        JLabel lblHeader = new JLabel("BÁO CÁO DOANH THU");
+        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        lblHeader.setForeground(new Color(44, 62, 80));
+        lblHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.add(lblHeader);
+        headerPanel.add(Box.createVerticalStrut(5));
+
+        JLabel lblSubHeader = new JLabel("Java Coffee Management System");
+        lblSubHeader.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+        lblSubHeader.setForeground(Color.GRAY);
+        lblSubHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.add(lblSubHeader);
+        headerPanel.add(Box.createVerticalStrut(8));
+
+        JLabel lblTime = new JLabel("Thời gian: " + txtFromDate.getText() + " đến " + txtToDate.getText());
+        lblTime.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblTime.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.add(lblTime);
+
+        reportPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // === CENTER SECTION ===
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setBackground(Color.WHITE);
+
+        // Summary Panel với border đẹp
+        JPanel summaryWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        summaryWrapper.setBackground(Color.WHITE);
+        
+        JPanel summaryPanel = new JPanel(new GridLayout(3, 2, 20, 8));
+        summaryPanel.setBackground(new Color(248, 249, 250));
+        summaryPanel.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(220, 220, 220), 1),
+            new EmptyBorder(15, 25, 15, 25)
+        ));
+        
+        summaryPanel.add(createSummaryLabel("Tổng doanh thu:"));
+        summaryPanel.add(createSummaryValue(lblTotalRevenueValue.getText()));
+        summaryPanel.add(createSummaryLabel("Tổng đơn hàng:"));
+        summaryPanel.add(createSummaryValue(lblTotalOrdersValue.getText()));
+        summaryPanel.add(createSummaryLabel("Món bán chạy nhất:"));
+        summaryPanel.add(createSummaryValue(lblBestSellerValue.getText()));
+        
+        summaryWrapper.add(summaryPanel);
+        centerPanel.add(summaryWrapper);
+        centerPanel.add(Box.createVerticalStrut(20));
+
+        // Chi tiết đơn hàng label
+        JPanel detailLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        detailLabelPanel.setBackground(Color.WHITE);
+        JLabel lblDetail = new JLabel("Chi tiết đơn hàng:");
+        lblDetail.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        detailLabelPanel.add(lblDetail);
+        centerPanel.add(detailLabelPanel);
+        centerPanel.add(Box.createVerticalStrut(8));
+
+        // Bảng dữ liệu
+        DefaultTableModel previewModel = new DefaultTableModel();
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            previewModel.addColumn(table.getColumnName(i));
         }
+        for (int i = 0; i < table.getRowCount(); i++) {
+            Object[] row = new Object[table.getColumnCount()];
+            for (int j = 0; j < table.getColumnCount(); j++) {
+                row[j] = table.getValueAt(i, j);
+            }
+            previewModel.addRow(row);
+        }
+        JTable previewTable = new JTable(previewModel);
+        previewTable.setRowHeight(28);
+        previewTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        previewTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        previewTable.getTableHeader().setBackground(new Color(44, 62, 80));
+        previewTable.getTableHeader().setForeground(Color.WHITE);
+        previewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        
+        JScrollPane tableScroll = new JScrollPane(previewTable);
+        tableScroll.setPreferredSize(new Dimension(550, 280));
+        centerPanel.add(tableScroll);
+        centerPanel.add(Box.createVerticalStrut(15));
+
+        // Footer
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setBackground(Color.WHITE);
+        JLabel lblFooter = new JLabel("In ngày: " + new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date()));
+        lblFooter.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        lblFooter.setForeground(Color.GRAY);
+        footerPanel.add(lblFooter);
+        centerPanel.add(footerPanel);
+
+        reportPanel.add(centerPanel, BorderLayout.CENTER);
+
+        // Scroll cho toàn bộ báo cáo
+        JScrollPane scrollPane = new JScrollPane(reportPanel);
+        scrollPane.setBorder(null);
+        previewDialog.add(scrollPane, BorderLayout.CENTER);
+
+        // Panel nút bấm
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(245, 245, 245));
+        
+        JButton btnPrint = new JButton("In báo cáo");
+        btnPrint.setBackground(new Color(52, 152, 219));
+        btnPrint.setForeground(Color.WHITE);
+        btnPrint.setFocusPainted(false);
+        btnPrint.setPreferredSize(new Dimension(120, 35));
+        btnPrint.addActionListener(e -> {
+            try {
+                MessageFormat header = new MessageFormat("Báo cáo Doanh thu - Java Coffee");
+                MessageFormat footer = new MessageFormat("Trang {0,number,integer}");
+                boolean complete = table.print(JTable.PrintMode.FIT_WIDTH, header, footer);
+                if (complete) {
+                    JOptionPane.showMessageDialog(previewDialog, "Đã in thành công!");
+                    previewDialog.dispose();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(previewDialog, "Lỗi khi in: " + ex.getMessage());
+            }
+        });
+        buttonPanel.add(btnPrint);
+
+        JButton btnCancel = new JButton("Đóng");
+        btnCancel.setPreferredSize(new Dimension(100, 35));
+        btnCancel.addActionListener(e -> previewDialog.dispose());
+        buttonPanel.add(btnCancel);
+
+        previewDialog.add(buttonPanel, BorderLayout.SOUTH);
+        previewDialog.setVisible(true);
+    }
+
+    private JLabel createSummaryLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        return lbl;
+    }
+
+    private JLabel createSummaryValue(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lbl.setForeground(new Color(52, 152, 219));
+        return lbl;
     }
     private void loadStatisticsData() {
         String sFrom = txtFromDate.getText().trim();

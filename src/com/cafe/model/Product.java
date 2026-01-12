@@ -1,9 +1,6 @@
 package com.cafe.model;
 
-/**
- * Lớp Model đại diện cho sản phẩm trong hệ thống Cafe
- * @author Owner
- */
+// Lớp Model đại diện cho sản phẩm trong hệ thống Cafe
 public class Product {
     private int id;
     private String name;

@@ -106,7 +106,7 @@ public class ImportPanel extends JPanel {
 
         // Stock display
         lblStock = new JLabel("Tồn kho: 0");
-        lblStock.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        lblStock.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblStock.setForeground(new Color(33, 150, 243));
         lblStock.setAlignmentX(Component.CENTER_ALIGNMENT);
         pRight.add(lblStock);
