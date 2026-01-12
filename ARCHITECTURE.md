@@ -1,60 +1,60 @@
-﻿# Kien truc Cafe Management System
+﻿# Kiến trúc Cafe Management System
 
-## Nguyen tac thiet ke
+## Nguyên tắc thiết kế
 
-- 1 MainFrame duy nhat - Su dung CardLayout de chuyen doi giua cac panel
-- Phan quyen bang UI - An/hien menu dua tren role, khong tao frame moi
-- Code don gian - Phu hop voi du an nho, tranh over-engineering
+- 1 MainFrame duy nhất - Sử dụng CardLayout để chuyển đổi giữa các panel
+- Phân quyền bằng UI - Ẩn/hiện menu dựa trên role, không tạo frame mới
+- Code đơn giản - Phù hợp với dự án nhỏ, tránh over-engineering
 
-## Cau truc thu muc
+## Cấu trúc thư mục
 
-`
+```
 src/com/cafe/
 ├── main/
 │   └── Main.java              - Entry point
 ├── model/
 │   ├── User.java              - User entity
-│   ├── Product.java           - Product entity  
+│   ├── Product.java           - Product entity
 │   └── UserRole.java          - Enum: MANAGER, STAFF
 ├── service/
-│   ├── UserSession.java       - Quan ly session
-│   ├── AuthService.java       - Xac thuc dang nhap
+│   ├── UserSession.java       - Quản lý session
+│   ├── AuthService.java       - Xác thực đăng nhập
 │   └── ProductService.java    - Business logic
 ├── dao/
 │   ├── AuthDAO.java           - Database access cho User
 │   └── ProductDAO.java        - Database access cho Product
 └── view/
     ├── login/
-    │   └── LoginFrame.java    - Man hinh dang nhap
+    │   └── LoginFrame.java    - Màn hình đăng nhập
     ├── main/
     │   └── MainFrame.java     - Main window (CardLayout)
     ├── sales/
-    │   └── SalesPanel.java    - Panel ban hang
+    │   └── SalesPanel.java    - Panel bán hàng
     └── warehouse/
-        └── WarehousePanel.java - Panel quan ly kho
-`
+        └── WarehousePanel.java - Panel quản lý kho
+```
 
-## Luong hoat dong
+## Luồng hoạt động
 
-`
+```
 1. Main.java
    |
-2. LoginFrame (dang nhap)
+2. LoginFrame (đăng nhập)
    |
 3. UserSession.setCurrentUser(user)
    |
-4. MainFrame (hien thi theo role)
+4. MainFrame (hiển thị theo role)
    ├─ MANAGER - Sidebar + All Panels
-   └─ STAFF   - Chi SalesPanel
-`
+   └─ STAFF   - Chỉ SalesPanel
+```
 
 ## MainFrame - CardLayout Architecture
 
-### Cau truc MainFrame
+### Cấu trúc MainFrame
 
-`
+```
 MainFrame (BorderLayout)
-├── pSidebar (WEST) - Chi hien voi MANAGER
+├── pSidebar (WEST) - Chỉ hiện với MANAGER
 │   ├── pLogo (TOP)
 │   ├── pMenu (CENTER)
 │   │   ├── btnSales
@@ -72,51 +72,30 @@ MainFrame (BorderLayout)
     ├── WAREHOUSE -> WarehousePanel
     ├── STATS -> StatsPanel
     └── EMPLOYEES -> EmployeePanel
-`
+```
 
-### Phan quyen trong MainFrame
+## Phân quyền
 
-MANAGER Role:
-`java
-if (UserSession.isManager()) {
-    pSidebar.setVisible(true);  // Hien sidebar
-    // Hien tat ca menu buttons
-}
-`
+### MANAGER Role
+- Hiển thị sidebar với tất cả menu buttons
+- Có thể truy cập tất cả chức năng
 
-STAFF Role:
-`java
-if (UserSession.isStaff()) {
-    pSidebar.setVisible(false);  // An sidebar
-    cardLayout.show(pContent, "SALES");  // Chi hien SalesPanel
-}
-`
+### STAFF Role
+- Ẩn sidebar
+- Chỉ hiển thị SalesPanel
+- Có nút đăng xuất ở góc phải
 
-## UserSession - Simple Static Class
+## Quy tắc phát triển
 
-`java
-public class UserSession {
-    private static User currentUser;
-    
-    public static User getCurrentUser() { ... }
-    public static void setCurrentUser(User user) { ... }
-    public static void clear() { ... }
-    public static boolean isManager() { ... }
-    public static boolean isStaff() { ... }
-}
-`
+1. Thêm panel mới: Tạo panel trong view/ và add vào CardLayout
+2. Phân quyền: Chỉnh sửa MainFrame.applyRolePermissions()
+3. Không tạo JFrame mới: Mọi màn hình đều là JPanel trong CardLayout
+4. Giữ code đơn giản
 
-## Quy tac phat trien
+## Ưu điểm của kiến trúc này
 
-1. Them panel moi: Tao panel trong view/ va add vao CardLayout
-2. Phan quyen: Chinh sua MainFrame.applyRolePermissions()
-3. Khong tao JFrame moi: Moi man hinh deu la JPanel trong CardLayout
-4. Giu code don gian
-
-## Uu diem cua kien truc nay
-
-- Don gian - De hieu, de maintain
-- Linh hoat - De them panel moi
-- Hieu qua - Chi 1 window
-- Ro rang - Phan quyen tap trung
-- Mo rong - De them role moi
+- Đơn giản - Dễ hiểu, dễ maintain
+- Linh hoạt - Dễ thêm panel mới
+- Hiệu quả - Chỉ 1 window
+- Rõ ràng - Phân quyền tập trung
+- Mở rộng - Dễ thêm role mới

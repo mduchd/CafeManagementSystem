@@ -24,7 +24,7 @@ Dự án cung cấp giải pháp quản lý toàn diện cho quán Cafe:
 
 Dự án áp dụng kiến trúc 3-Tier + Service Layer:
 
-`
+```
 View (Java Swing UI)
         |
 Service (Business Logic)
@@ -32,7 +32,7 @@ Service (Business Logic)
 DAO (SQL, JDBC)
         |
 Database (MySQL)
-`
+```
 
 **Nguyên tắc:**
 - Không viết SQL trong View
@@ -41,7 +41,7 @@ Database (MySQL)
 
 ## Cấu trúc dự án
 
-`
+```
 CafeManagementSystem/
 ├── src/
 │   ├── database/
@@ -63,7 +63,7 @@ CafeManagementSystem/
 ├── lib/
 │   └── mysql-connector-java-8.0.27.jar
 └── README.md
-`
+```
 
 ## Công nghệ sử dụng
 
@@ -82,14 +82,14 @@ CafeManagementSystem/
 1. Cài đặt XAMPP
 2. Start Apache và MySQL
 3. Truy cập: http://localhost/phpmyadmin
-4. Tạo database: `cafedb`
-5. Import file: `src/database/database.sql`
+4. Tạo database: cafedb
+5. Import file: src/database/database.sql
 
 ### Bước 2: Clone project
 
-`ash
+```bash
 git clone https://github.com/mduchd/CafeManagementSystem.git
-`
+```
 
 ### Bước 3: Mở project
 
@@ -101,16 +101,16 @@ git clone https://github.com/mduchd/CafeManagementSystem.git
 
 1. Chuột phải Libraries
 2. Chọn Add JAR/Folder
-3. Thêm file `lib/mysql-connector-java-8.0.27.jar`
+3. Thêm file lib/mysql-connector-java-8.0.27.jar
 
 ### Bước 5: Chạy chương trình
 
-1. Mở `src/com/cafe/main/Main.java`
+1. Mở src/com/cafe/main/Main.java
 2. Nhấn Shift + F6
 
 **Tài khoản mặc định:**
-- Username: `admin`
-- Password: `123`
+- Username: admin
+- Password: 123
 
 ## Thành viên nhóm
 

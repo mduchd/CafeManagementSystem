@@ -1,47 +1,47 @@
-﻿# Huong dan chay ung dung
+﻿# Hướng dẫn chạy ứng dụng
 
-## Yeu cau he thong
+## Yêu cầu hệ thống
 
-- JDK 8 hoac cao hon
+- JDK 8 hoặc cao hơn
 - MySQL (XAMPP)
 - NetBeans IDE
 
-## Buoc 1: Cai dat Database
+## Bước 1: Cài đặt Database
 
-1. Cai dat XAMPP
-2. Start Apache va MySQL
-3. Truy cap http://localhost/phpmyadmin
-4. Tao database: cafedb
+1. Cài đặt XAMPP
+2. Start Apache và MySQL
+3. Truy cập http://localhost/phpmyadmin
+4. Tạo database: cafedb
 5. Import file: src/database/database.sql
 
-## Buoc 2: Mo project
+## Bước 2: Mở project
 
-1. Mo NetBeans
-2. File - Open Project
-3. Chon thu muc CafeManagementSystem
+1. Mở NetBeans
+2. File -> Open Project
+3. Chọn thư mục CafeManagementSystem
 
-## Buoc 3: Them JDBC Driver
+## Bước 3: Thêm JDBC Driver
 
-1. Click phai vao Libraries
-2. Chon Add JAR/Folder
-3. Chon file lib/mysql-connector-java-8.0.27.jar
+1. Click phải vào Libraries
+2. Chọn Add JAR/Folder
+3. Chọn file lib/mysql-connector-java-8.0.27.jar
 
-## Buoc 4: Chay ung dung
+## Bước 4: Chạy ứng dụng
 
-1. Mo src/com/cafe/main/Main.java
-2. Nhan Shift + F6
+1. Mở src/com/cafe/main/Main.java
+2. Nhấn Shift + F6
 
-## Tai khoan mac dinh
+## Tài khoản mặc định
 
 - Username: admin
 - Password: 123
 
-## Khac phuc loi thuong gap
+## Khắc phục lỗi thường gặp
 
-### Loi ket noi database
-- Kiem tra MySQL da start trong XAMPP
-- Kiem tra database cafedb ton tai
-- Kiem tra file DatabaseConnection.java co dung thong tin
+### Lỗi kết nối database
+- Kiểm tra MySQL đã start trong XAMPP
+- Kiểm tra database cafedb tồn tại
+- Kiểm tra file DatabaseConnection.java có đúng thông tin
 
-### Loi thieu thu vien
-- Kiem tra da add mysql-connector-java vao Libraries
+### Lỗi thiếu thư viện
+- Kiểm tra đã add mysql-connector-java vào Libraries
