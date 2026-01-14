@@ -1,6 +1,5 @@
 package com.cafe.model;
 
-// Lớp Model đại diện cho sản phẩm trong hệ thống Cafe
 public class Product {
     private int id;
     private String name;
@@ -9,11 +8,9 @@ public class Product {
     private String status;
     private String image; 
 
-    // Constructor không tham số
     public Product() {
     }
 
-    // Constructor đầy đủ tham số
     public Product(int id, String name, String category, double price, String status, String image) {
         this.id = id;
         this.name = name;
@@ -23,7 +20,6 @@ public class Product {
         this.image = image;
     }
 
-    // Getters
     public int getId() {
         return id;
     }
@@ -48,7 +44,6 @@ public class Product {
         return image;
     }
 
-    // Setters
     public void setId(int id) {
         this.id = id;
     }

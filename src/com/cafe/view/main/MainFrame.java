@@ -4,7 +4,6 @@ import com.cafe.view.sales.SalesPanel;
 import com.cafe.view.product.ProductPanel;
 import com.cafe.service.UserSession;
 import com.cafe.view.statistics.StatsPanel;
-import com.cafe.view.warehouse.ImportDialog;
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -16,7 +15,7 @@ public class MainFrame extends javax.swing.JFrame {
     private static final java.awt.Color SIDEBAR_HOVER = new java.awt.Color(41, 82, 130); // Lighter blue
     private static final java.awt.Color SIDEBAR_ACTIVE = new java.awt.Color(52, 152, 219); // Bright blue
 
-    private javax.swing.JButton activeButton = null;
+    private javax.swing.JButton activeButton = null; 
     private java.awt.CardLayout cardLayout;
     private SalesPanel salesPanel; // Store SalesPanel instance to reuse
 

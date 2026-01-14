@@ -5,10 +5,7 @@ import com.cafe.model.Account;
 
 import java.util.List;
 
-/**
- * Service layer for Account management
- * Handles business logic and validation
- */
+
 public class AccountService {
     private final AccountDAO accountDAO;
 

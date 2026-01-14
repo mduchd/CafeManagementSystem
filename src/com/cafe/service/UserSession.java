@@ -2,14 +2,10 @@ package com.cafe.service;
 
 import com.cafe.model.User;
 
-/**
- * Simple class to manage user session
- */
 public class UserSession {
     private static User currentUser;
     private static final UserSession INSTANCE = new UserSession();
 
-    // Singleton accessor for compatibility
     public static UserSession getInstance() {
         return INSTANCE;
     }
@@ -37,7 +33,6 @@ public class UserSession {
         return !isManager();
     }
 
-    // Instance methods for MainFrame compatibility
     public String getCurrentUserName() {
         return currentUser != null ? currentUser.getUserName() : "Guest";
     }

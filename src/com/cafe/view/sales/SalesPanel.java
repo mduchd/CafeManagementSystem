@@ -12,7 +12,6 @@ import com.cafe.service.ProductService;
 import com.cafe.service.UserSession;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
@@ -35,8 +34,8 @@ public class SalesPanel extends javax.swing.JPanel {
 
     // === TABLE MANAGEMENT (from sonvu branch) ===
     private List<CafeTable> tableList = new ArrayList<>();
-    private CafeTable selectedTable = null;
-    private List<JButton> tableButtons = new ArrayList<>();
+    private CafeTable selectedTable = null; // Bàn được chọn, null nếu chưa chọn
+    private List<JButton> tableButtons = new ArrayList<>(); // Danh sách các nút bàn
 
     // === MENU PANEL (from HEAD) ===
     private JPanel pMenuItems;

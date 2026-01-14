@@ -1,7 +1,7 @@
 package com.cafe.main;
 
 import com.cafe.view.login.LoginFrame;
-import javax.swing.SwingUtilities;
+import javax.swing.SwingUtilities; // GUI UI
 
 /**
  * Main entry point for Cafe Management System
