@@ -155,7 +155,7 @@ public class StatsPanel extends javax.swing.JPanel {
         reportPanel.setBackground(Color.WHITE);
         reportPanel.setBorder(new EmptyBorder(25, 40, 25, 40));
 
-        // === HEADER SECTION ===
+        //  HEADER SECTION 
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBackground(Color.WHITE);

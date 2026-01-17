@@ -44,9 +44,7 @@ public class StatisticsDAO {
     }
 
     // 3. Tìm món bán chạy nhất
-    // LƯU Ý: Tôi giả định bảng 'chitiethoadon' dùng cột: MaHD, MaSP, SoLuong
-    // Và bảng 'sanpham' dùng cột: MaSP, TenSP
-    // Nếu chạy bị lỗi phần này, bạn cần kiểm tra lại tên cột của 2 bảng đó.
+   
     public String getBestSellingProduct(Timestamp fromDate, Timestamp toDate) {
         String bestSeller = "Chưa có liệu";
         String sql = "SELECT s.TenSP, SUM(c.SoLuong) as qty " +
